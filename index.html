@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>김비서 - 스마트 업무 관리 서비스</title>
+    <style>
+        :root {
+            --bg-primary: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            --bg-secondary: #ffffff;
+            --text-primary: #2c3e50;
+            --text-secondary: #555;
+            --card-bg: rgba(255, 255, 255, 0.7);
+            --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            --border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        html.dark-mode {
+            --bg-primary: linear-gradient(135deg, #0f0f23 0%, #1a1a3f 100%);
+            --bg-secondary: #0f0f23;
+            --text-primary: #e0e0e0;
+            --text-secondary: #b0b0b0;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-primary);
+            min-height: 100vh;
+            padding: 0;
+            transition: background 0.5s ease;
+        }
+
+        .body-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            min-height: calc(100vh - 120px);
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 24px;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: var(--card-shadow);
+        }
+
+        /* 내비게이션 메뉴 */
+        .nav-menu {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto;
+            flex-wrap: wrap;
+            padding: 0 20px;
+        }
+
+        .nav-button {
+            padding: 12px 24px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+            border-radius: 10px;
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nav-button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--card-shadow);
+            border-color: #667eea;
+        }
+
+        .nav-button.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: #667eea;
+            color: white;
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+        }
+
+        .container {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: var(--card-shadow);
+            max-width: 900px;
+            width: 100%;
+            padding: 80px 60px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .logo {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 48px;
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            font-weight: 700;
+            transition: color 0.3s ease;
+        }
+
+        .intro-text {
+            font-size: 20px;
+            color: var(--text-secondary);
+            margin-bottom: 60px;
+            line-height: 1.6;
+            transition: color 0.3s ease;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .feature-card {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.8) 0%, rgba(118, 75, 162, 0.8) 100%);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 40px 20px;
+            border-radius: 15px;
+            color: white;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        }
+
+        .feature-card:nth-child(2) {
+            background: linear-gradient(135deg, rgba(240, 147, 251, 0.8) 0%, rgba(245, 87, 108, 0.8) 100%);
+        }
+
+        .feature-card:nth-child(3) {
+            background: linear-gradient(135deg, rgba(79, 172, 254, 0.8) 0%, rgba(0, 242, 254, 0.8) 100%);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+        }
+
+        .feature-icon {
+            font-size: 50px;
+            margin-bottom: 15px;
+        }
+
+        .feature-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .feature-desc {
+            font-size: 14px;
+            opacity: 0.95;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 18px 50px;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            text-decoration: none;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            backdrop-filter: blur(10px);
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.6);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 50px 30px;
+            }
+
+            h1 {
+                font-size: 36px;
+            }
+
+            .intro-text {
+                font-size: 16px;
+            }
+
+            .features {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .cta-button {
+                padding: 15px 40px;
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="theme-toggle" id="themeToggle" title="다크/라이트 모드">🌙</div>
+
+    <nav class="nav-menu">
+        <a href="dashboard.html" class="nav-button">📊 대시보드</a>
+        <a href="meeting-result.html" class="nav-button">📋 회의록</a>
+        <a href="chart.html" class="nav-button">📈 매출 현황</a>
+        <a href="diagram.svg" class="nav-button">🔄 업무 프로세스</a>
+        <a href="report.html" class="nav-button">🔍 사이트 분석</a>
+    </nav>
+
+    <div class="body-wrapper">
+        <div class="container">
+        <div class="logo">📊</div>
+        <h1>김비서를 소개합니다</h1>
+        <p class="intro-text">
+            스마트한 업무 관리로 시간을 절약하고, 효율을 높이세요.<br>
+            김비서가 당신의 모든 업무를 체계적으로 정리해드립니다.
+        </p>
+
+        <div class="features">
+            <div class="feature-card">
+                <div class="feature-icon">✓</div>
+                <div class="feature-title">할 일 관리</div>
+                <div class="feature-desc">우선순위별로 업무를 정리하고, 진행 상황을 한눈에 확인합니다.</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📅</div>
+                <div class="feature-title">일정 추적</div>
+                <div class="feature-desc">주간 일정을 체계적으로 관리하고 중요한 일정을 놓치지 않습니다.</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📈</div>
+                <div class="feature-title">진행률 모니터링</div>
+                <div class="feature-desc">프로젝트 진행 상황과 매출 현황을 실시간으로 파악합니다.</div>
+            </div>
+        </div>
+
+        <a href="dashboard.html" class="cta-button">📈 내 대시보드 보기</a>
+    </div>
+        </div>
+
+    <script>
+        const themeToggle = document.getElementById('themeToggle');
+        const html = document.documentElement;
+
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            if (savedTheme === 'dark') {
+                html.classList.add('dark-mode');
+                themeToggle.textContent = '☀️';
+            } else {
+                html.classList.remove('dark-mode');
+                themeToggle.textContent = '🌙';
+            }
+        }
+
+        themeToggle.addEventListener('click', () => {
+            const isDarkMode = html.classList.toggle('dark-mode');
+            localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+            themeToggle.textContent = isDarkMode ? '☀️' : '🌙';
+        });
+
+        initTheme();
+
+        // 현재 페이지에 해당하는 네비게이션 버튼 활성화
+        function highlightCurrentPage() {
+            const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+            const navButtons = document.querySelectorAll('.nav-button');
+
+            navButtons.forEach(button => {
+                button.classList.remove('active');
+                const href = button.getAttribute('href');
+                if (href === currentPage || (currentPage === '' && href === 'index.html')) {
+                    button.classList.add('active');
+                }
+            });
+        }
+
+        highlightCurrentPage();
+    </script>
+</body>
+</html>

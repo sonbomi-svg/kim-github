@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>매출 분석 - 차트</title>
+    <style>
+        :root {
+            --bg-primary: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            --bg-secondary: #f5f6fa;
+            --text-primary: #2c3e50;
+            --text-secondary: #555;
+            --text-muted: #999;
+            --card-bg: rgba(255, 255, 255, 0.7);
+            --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            --border-color: rgba(255, 255, 255, 0.3);
+            --chart-blue: #3b82f6;
+            --chart-green: #10b981;
+            --chart-cyan: #06b6d4;
+            --chart-emerald: #059669;
+        }
+
+        html.dark-mode {
+            --bg-primary: linear-gradient(135deg, #0f0f23 0%, #1a1a3f 100%);
+            --bg-secondary: #0f0f23;
+            --text-primary: #e0e0e0;
+            --text-secondary: #b0b0b0;
+            --text-muted: #707070;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-primary);
+            padding: 30px 20px;
+            transition: background 0.5s ease;
+            min-height: 100vh;
+            color: var(--text-primary);
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 24px;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: var(--card-shadow);
+        }
+
+        .header {
+            max-width: 1200px;
+            margin: 0 auto 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+            transition: color 0.3s ease;
+        }
+
+        .back-link {
+            display: inline-block;
+            color: #667eea;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            padding: 8px 12px;
+            border-radius: 6px;
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .back-link:hover {
+            color: #764ba2;
+        }
+
+        /* 내비게이션 메뉴 */
+        .nav-menu {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto;
+            flex-wrap: wrap;
+        }
+
+        .nav-button {
+            padding: 12px 24px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+            border-radius: 10px;
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nav-button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--card-shadow);
+            border-color: #667eea;
+        }
+
+        .nav-button.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: #667eea;
+            color: white;
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+
+        .chart-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: var(--card-shadow);
+            transition: all 0.3s ease;
+        }
+
+        .chart-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .chart-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--border-color);
+            transition: color 0.3s ease;
+        }
+
+        .chart-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        canvas {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+
+        .chart-legend {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+            flex-shrink: 0;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-box {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-box:hover {
+            background: rgba(59, 130, 246, 0.15);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--chart-blue);
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .chart-card {
+                padding: 20px;
+            }
+
+            canvas {
+                max-height: 300px;
+            }
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+
+            .theme-toggle,
+            .back-link {
+                display: none;
+            }
+
+            .chart-card {
+                background: white;
+                border: 1px solid #ddd;
+                box-shadow: none;
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="theme-toggle" id="themeToggle" title="다크/라이트 모드">🌙</div>
+
+    <nav class="nav-menu">
+        <a href="dashboard.html" class="nav-button">📊 대시보드</a>
+        <a href="meeting-result.html" class="nav-button">📋 회의록</a>
+        <a href="chart.html" class="nav-button active">📈 매출 현황</a>
+        <a href="diagram.svg" class="nav-button">🔄 업무 프로세스</a>
+        <a href="report.html" class="nav-button">🔍 사이트 분석</a>
+    </nav>
+
+    <div class="header">
+        <h1>📊 매출 분석</h1>
+        <a href="dashboard.html" class="back-link">← 대시보드로</a>
+    </div>
+
+    <div class="container">
+        <div class="charts-grid">
+            <!-- 월별 매출 추이 -->
+            <div class="chart-card">
+                <h2 class="chart-title">📈 월별 매출 추이</h2>
+                <div class="chart-container">
+                    <canvas id="lineChart" width="800" height="300"></canvas>
+                </div>
+                <div class="chart-legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: var(--chart-blue);"></div>
+                        <span>매출액</span>
+                    </div>
+                </div>
+                <div class="stats" id="lineStats"></div>
+            </div>
+
+            <!-- 제품별 매출 비교 -->
+            <div class="chart-card">
+                <h2 class="chart-title">📊 제품별 매출 비교</h2>
+                <div class="chart-container">
+                    <canvas id="barChart" width="800" height="350"></canvas>
+                </div>
+                <div class="chart-legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: var(--chart-green);"></div>
+                        <span>제품별 총 매출액</span>
+                    </div>
+                </div>
+                <div class="stats" id="barStats"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 테마 토글
+        const themeToggle = document.getElementById('themeToggle');
+        const html = document.documentElement;
+
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            if (savedTheme === 'dark') {
+                html.classList.add('dark-mode');
+                themeToggle.textContent = '☀️';
+            } else {
+                html.classList.remove('dark-mode');
+                themeToggle.textContent = '🌙';
+            }
+        }
+
+        themeToggle.addEventListener('click', () => {
+            const isDarkMode = html.classList.toggle('dark-mode');
+            localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+            themeToggle.textContent = isDarkMode ? '☀️' : '🌙';
+        });
+
+        initTheme();
+
+        // 현재 페이지에 해당하는 네비게이션 버튼 활성화
+        function highlightCurrentPage() {
+            const currentPage = window.location.pathname.split('/').pop() || 'chart.html';
+            const navButtons = document.querySelectorAll('.nav-button');
+
+            navButtons.forEach(button => {
+                button.classList.remove('active');
+                const href = button.getAttribute('href');
+                if (href === currentPage) {
+                    button.classList.add('active');
+                }
+            });
+        }
+
+        highlightCurrentPage();
+
+        // 매출 데이터
+        const salesData = [
+            { date: '2026-01-05', product: '무선 이어폰', amount: 4005000 },
+            { date: '2026-01-05', product: '보조배터리', amount: 1120000 },
+            { date: '2026-01-05', product: '텀블러', amount: 1950000 },
+            { date: '2026-01-08', product: '무선 이어폰', amount: 4628000 },
+            { date: '2026-01-08', product: '블루투스 스피커', amount: 2160000 },
+            { date: '2026-01-08', product: '텀블러', amount: 1625000 },
+            { date: '2026-01-12', product: '보조배터리', amount: 1435000 },
+            { date: '2026-01-12', product: '무선 충전기', amount: 1305000 },
+            { date: '2026-01-12', product: '에코백', amount: 1395000 },
+            { date: '2026-01-15', product: '무선 이어폰', amount: 3382000 },
+            { date: '2026-01-15', product: '블루투스 스피커', amount: 2640000 },
+            { date: '2026-01-15', product: '텀블러', amount: 2100000 },
+            { date: '2026-01-19', product: '보조배터리', amount: 1925000 },
+            { date: '2026-01-19', product: '에코백', amount: 1650000 },
+            { date: '2026-01-19', product: '무선 충전기', amount: 1485000 },
+            { date: '2026-01-22', product: '무선 이어폰', amount: 5429000 },
+            { date: '2026-01-22', product: '텀블러', amount: 1800000 },
+            { date: '2026-01-22', product: '블루투스 스피커', amount: 1800000 },
+            { date: '2026-01-26', product: '보조배터리', amount: 1680000 },
+            { date: '2026-01-26', product: '에코백', amount: 1320000 },
+            { date: '2026-01-26', product: '무선 충전기', amount: 1665000 },
+            { date: '2026-02-01', product: '무선 이어폰', amount: 6230000 },
+            { date: '2026-02-01', product: '텀블러', amount: 2375000 },
+            { date: '2026-02-01', product: '보조배터리', amount: 1505000 },
+            { date: '2026-02-05', product: '블루투스 스피커', amount: 3000000 },
+            { date: '2026-02-05', product: '에코백', amount: 1800000 },
+            { date: '2026-02-05', product: '무선 충전기', amount: 1395000 },
+            { date: '2026-02-10', product: '무선 이어폰', amount: 5162000 },
+            { date: '2026-02-10', product: '텀블러', amount: 1675000 },
+            { date: '2026-02-10', product: '보조배터리', amount: 1365000 }
+        ];
+
+        // 유틸리티: 숫자 포맷팅 (쉼표)
+        function formatNumber(num) {
+            return Math.round(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+
+        // 월별 매출 데이터 처리
+        function getMonthlyData() {
+            const monthlyData = {};
+            salesData.forEach(item => {
+                const month = item.date.substring(0, 7);
+                monthlyData[month] = (monthlyData[month] || 0) + item.amount;
+            });
+            return monthlyData;
+        }
+
+        // 제품별 매출 데이터 처리
+        function getProductData() {
+            const productData = {};
+            salesData.forEach(item => {
+                productData[item.product] = (productData[item.product] || 0) + item.amount;
+            });
+            return productData;
+        }
+
+        // 선 그래프 그리기
+        function drawLineChart() {
+            const canvas = document.getElementById('lineChart');
+            const ctx = canvas.getContext('2d');
+            const monthlyData = getMonthlyData();
+            const months = Object.keys(monthlyData).sort();
+            const values = months.map(m => monthlyData[m]);
+
+            const padding = 60;
+            const chartWidth = canvas.width - 2 * padding;
+            const chartHeight = canvas.height - 2 * padding;
+            const maxValue = Math.max(...values);
+            const step = chartHeight / maxValue;
+
+            // 배경
+            ctx.fillStyle = 'transparent';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // 그리드라인
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= 5; i++) {
+                const y = padding + (chartHeight / 5) * i;
+                ctx.beginPath();
+                ctx.moveTo(padding, y);
+                ctx.lineTo(canvas.width - padding, y);
+                ctx.stroke();
+            }
+
+            // Y축 레이블
+            ctx.fillStyle = '#999';
+            ctx.textAlign = 'right';
+            ctx.font = '12px sans-serif';
+            for (let i = 0; i <= 5; i++) {
+                const value = Math.round((maxValue / 5) * (5 - i));
+                const y = padding + (chartHeight / 5) * i + 4;
+                ctx.fillText(formatNumber(value), padding - 10, y);
+            }
+
+            // X축
+            ctx.strokeStyle = '#ccc';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(padding, canvas.height - padding);
+            ctx.lineTo(canvas.width - padding, canvas.height - padding);
+            ctx.stroke();
+
+            // Y축
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, canvas.height - padding);
+            ctx.stroke();
+
+            // 데이터 포인트와 라인
+            ctx.strokeStyle = '#3b82f6';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            values.forEach((value, idx) => {
+                const x = padding + (chartWidth / (values.length - 1 || 1)) * idx;
+                const y = canvas.height - padding - value * step;
+                if (idx === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+
+            // 포인트 원
+            ctx.fillStyle = '#3b82f6';
+            values.forEach((value, idx) => {
+                const x = padding + (chartWidth / (values.length - 1 || 1)) * idx;
+                const y = canvas.height - padding - value * step;
+                ctx.beginPath();
+                ctx.arc(x, y, 5, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // X축 레이블
+            ctx.fillStyle = '#555';
+            ctx.textAlign = 'center';
+            ctx.font = 'bold 12px sans-serif';
+            months.forEach((month, idx) => {
+                const x = padding + (chartWidth / (months.length - 1 || 1)) * idx;
+                const y = canvas.height - padding + 20;
+                ctx.fillText(month, x, y);
+            });
+
+            // 통계
+            const totalSales = Object.values(monthlyData).reduce((a, b) => a + b, 0);
+            const avgSales = totalSales / months.length;
+            const maxMonth = months[values.indexOf(Math.max(...values))];
+
+            const statsHtml = `
+                <div class="stat-box">
+                    <div class="stat-label">총 매출액</div>
+                    <div class="stat-value">${formatNumber(totalSales)}원</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">평균 매출</div>
+                    <div class="stat-value">${formatNumber(avgSales)}원</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">최고 월</div>
+                    <div class="stat-value">${maxMonth}</div>
+                </div>
+            `;
+            document.getElementById('lineStats').innerHTML = statsHtml;
+        }
+
+        // 막대 그래프 그리기
+        function drawBarChart() {
+            const canvas = document.getElementById('barChart');
+            const ctx = canvas.getContext('2d');
+            const productData = getProductData();
+            const products = Object.keys(productData).sort((a, b) => productData[b] - productData[a]);
+            const values = products.map(p => productData[p]);
+
+            const padding = 60;
+            const chartWidth = canvas.width - 2 * padding;
+            const chartHeight = canvas.height - 2 * padding;
+            const maxValue = Math.max(...values);
+            const barWidth = chartWidth / products.length;
+            const step = chartHeight / maxValue;
+
+            // 배경
+            ctx.fillStyle = 'transparent';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // 그리드라인
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= 5; i++) {
+                const y = padding + (chartHeight / 5) * i;
+                ctx.beginPath();
+                ctx.moveTo(padding, y);
+                ctx.lineTo(canvas.width - padding, y);
+                ctx.stroke();
+            }
+
+            // Y축 레이블
+            ctx.fillStyle = '#999';
+            ctx.textAlign = 'right';
+            ctx.font = '12px sans-serif';
+            for (let i = 0; i <= 5; i++) {
+                const value = Math.round((maxValue / 5) * (5 - i));
+                const y = padding + (chartHeight / 5) * i + 4;
+                ctx.fillText(formatNumber(value), padding - 10, y);
+            }
+
+            // X축
+            ctx.strokeStyle = '#ccc';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(padding, canvas.height - padding);
+            ctx.lineTo(canvas.width - padding, canvas.height - padding);
+            ctx.stroke();
+
+            // Y축
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, canvas.height - padding);
+            ctx.stroke();
+
+            // 막대 그리기
+            const colors = ['#10b981', '#059669', '#0891b2', '#0d9488', '#047857', '#065f46'];
+            values.forEach((value, idx) => {
+                const x = padding + barWidth * idx + barWidth * 0.1;
+                const barHeight = value * step;
+                const y = canvas.height - padding - barHeight;
+                const width = barWidth * 0.8;
+
+                ctx.fillStyle = colors[idx % colors.length];
+                ctx.fillRect(x, y, width, barHeight);
+
+                // 값 표시
+                ctx.fillStyle = '#555';
+                ctx.textAlign = 'center';
+                ctx.font = 'bold 11px sans-serif';
+                ctx.fillText(formatNumber(value), x + width / 2, y - 5);
+            });
+
+            // X축 레이블
+            ctx.fillStyle = '#555';
+            ctx.textAlign = 'center';
+            ctx.font = '11px sans-serif';
+            products.forEach((product, idx) => {
+                const x = padding + barWidth * idx + barWidth * 0.5;
+                const y = canvas.height - padding + 35;
+                const words = product.split(' ');
+                words.forEach((word, i) => {
+                    ctx.fillText(word, x, y + i * 12);
+                });
+            });
+
+            // 통계
+            const totalSales = Object.values(productData).reduce((a, b) => a + b, 0);
+            const topProduct = products[0];
+            const topAmount = values[0];
+
+            const statsHtml = `
+                <div class="stat-box">
+                    <div class="stat-label">전체 제품 매출</div>
+                    <div class="stat-value">${formatNumber(totalSales)}원</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">최고 상품</div>
+                    <div class="stat-value">${topProduct}</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">최고 상품 매출</div>
+                    <div class="stat-value">${formatNumber(topAmount)}원</div>
+                </div>
+            `;
+            document.getElementById('barStats').innerHTML = statsHtml;
+        }
+
+        // 초기화
+        drawLineChart();
+        drawBarChart();
+
+        // 윈도우 리사이즈 시 차트 재그리기
+        window.addEventListener('resize', () => {
+            drawLineChart();
+            drawBarChart();
+        });
+    </script>
+</body>
+</html>

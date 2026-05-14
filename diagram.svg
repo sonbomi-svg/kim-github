@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 200" width="800" height="200">
+  <defs>
+    <style>
+      .step-box {
+        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+      }
+      .step-text {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        font-size: 16px;
+        font-weight: 600;
+        text-anchor: middle;
+        dominant-baseline: middle;
+      }
+      .step-number {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        font-size: 24px;
+        font-weight: 700;
+        text-anchor: middle;
+        dominant-baseline: middle;
+        opacity: 0.6;
+      }
+      .arrow-line {
+        stroke-width: 2;
+        fill: none;
+        stroke: #999;
+      }
+      .arrow-head {
+        fill: #999;
+      }
+    </style>
+  </defs>
+
+  <!-- 배경 -->
+  <rect width="800" height="200" fill="white" opacity="0.5"/>
+
+  <!-- Step 1: 기획 -->
+  <g class="step-box">
+    <rect x="30" y="50" width="120" height="100" rx="12" ry="12" fill="#FFB3D9" stroke="#FF85B8" stroke-width="2"/>
+    <text x="90" y="85" class="step-number">1</text>
+    <text x="90" y="125" class="step-text" fill="#6B1B3D">기획</text>
+  </g>
+
+  <!-- Arrow 1 -->
+  <g>
+    <line x1="160" y1="100" x2="190" y2="100" class="arrow-line"/>
+    <polygon points="195,100 185,95 185,105" class="arrow-head"/>
+  </g>
+
+  <!-- Step 2: 제작 -->
+  <g class="step-box">
+    <rect x="210" y="50" width="120" height="100" rx="12" ry="12" fill="#B3D9FF" stroke="#85C2FF" stroke-width="2"/>
+    <text x="270" y="85" class="step-number">2</text>
+    <text x="270" y="125" class="step-text" fill="#1B4D6B">제작</text>
+  </g>
+
+  <!-- Arrow 2 -->
+  <g>
+    <line x1="340" y1="100" x2="370" y2="100" class="arrow-line"/>
+    <polygon points="375,100 365,95 365,105" class="arrow-head"/>
+  </g>
+
+  <!-- Step 3: 검토 -->
+  <g class="step-box">
+    <rect x="390" y="50" width="120" height="100" rx="12" ry="12" fill="#B3FFB3" stroke="#85FF85" stroke-width="2"/>
+    <text x="450" y="85" class="step-number">3</text>
+    <text x="450" y="125" class="step-text" fill="#1B6B1B">검토</text>
+  </g>
+
+  <!-- Arrow 3 -->
+  <g>
+    <line x1="520" y1="100" x2="550" y2="100" class="arrow-line"/>
+    <polygon points="555,100 545,95 545,105" class="arrow-head"/>
+  </g>
+
+  <!-- Step 4: 배포 -->
+  <g class="step-box">
+    <rect x="570" y="50" width="120" height="100" rx="12" ry="12" fill="#FFFFB3" stroke="#FFFF85" stroke-width="2"/>
+    <text x="630" y="85" class="step-number">4</text>
+    <text x="630" y="125" class="step-text" fill="#6B6B1B">배포</text>
+  </g>
+
+  <!-- Arrow 4 -->
+  <g>
+    <line x1="700" y1="100" x2="730" y2="100" class="arrow-line"/>
+    <polygon points="735,100 725,95 725,105" class="arrow-head"/>
+  </g>
+
+  <!-- Step 5: 분석 -->
+  <g class="step-box">
+    <rect x="745" y="50" width="25" height="100" rx="12" ry="12" fill="#E6B3FF" stroke="#D985FF" stroke-width="2" opacity="0"/>
+  </g>
+
+  <!-- Step 5 수정 (더 넓은 박스) -->
+  <g class="step-box">
+    <rect x="570" y="50" width="120" height="100" rx="12" ry="12" fill="#E6B3FF" stroke="#D985FF" stroke-width="2" opacity="0" x="650"/>
+  </g>
+
+  <!-- 다시 정렬: Step 5를 더 오른쪽에 -->
+  <!-- Step 5: 분석 (새로 추가) -->
+  <g class="step-box">
+    <rect x="670" y="50" width="120" height="100" rx="12" ry="12" fill="#E6B3FF" stroke="#D985FF" stroke-width="2"/>
+    <text x="730" y="85" class="step-number">5</text>
+    <text x="730" y="125" class="step-text" fill="#4D1B6B">분석</text>
+  </g>
+
+  <!-- 전체 프로세스 흐름 표시용 텍스트 (선택) -->
+  <g opacity="0.3">
+    <text x="400" y="15" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto; font-size: 12px; text-anchor: middle; fill: #666;">마케팅 프로세스 플로우</text>
+  </g>
+</svg>

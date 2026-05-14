@@ -1,0 +1,1573 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>김비서 - 업무 대시보드</title>
+    <style>
+        :root {
+            --bg-primary: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            --bg-secondary: #f5f6fa;
+            --text-primary: #2c3e50;
+            --text-secondary: #555;
+            --text-muted: #999;
+            --card-bg: rgba(255, 255, 255, 0.7);
+            --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            --border-color: rgba(255, 255, 255, 0.3);
+            --progress-bg: #e0e0e0;
+        }
+
+        html.dark-mode {
+            --bg-primary: linear-gradient(135deg, #0f0f23 0%, #1a1a3f 100%);
+            --bg-secondary: #0f0f23;
+            --text-primary: #e0e0e0;
+            --text-secondary: #b0b0b0;
+            --text-muted: #707070;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --progress-bg: rgba(255, 255, 255, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-primary);
+            padding: 30px 20px;
+            transition: background 0.5s ease;
+            min-height: 100vh;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 24px;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: var(--card-shadow);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            color: var(--text-primary);
+            font-weight: 700;
+            transition: color 0.3s ease;
+        }
+
+        .back-link {
+            display: inline-block;
+            color: #667eea;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .back-link:hover {
+            color: #764ba2;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .card.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border-color);
+            transition: color 0.3s ease;
+        }
+
+        /* 할 일 목록 */
+        .todo-list {
+            list-style: none;
+        }
+
+        .todo-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .todo-item:last-child {
+            border-bottom: none;
+        }
+
+        .todo-checkbox {
+            width: 20px;
+            height: 20px;
+            margin-right: 15px;
+            cursor: pointer;
+            accent-color: #667eea;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .todo-content {
+            flex: 1;
+        }
+
+        .todo-text {
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 5px;
+            transition: color 0.3s ease;
+        }
+
+        .todo-meta {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .priority-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .priority-high {
+            background: #ffe6e6;
+            color: #d32f2f;
+        }
+
+        .priority-medium {
+            background: #fff3cd;
+            color: #f39c12;
+        }
+
+        .priority-low {
+            background: #d4edda;
+            color: #27ae60;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-progress {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .status-waiting {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+
+        .status-complete {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        /* 주간 일정 */
+        .schedule-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+        }
+
+        .day-column {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.8) 0%, rgba(118, 75, 162, 0.8) 100%);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .day-column:nth-child(2) {
+            background: linear-gradient(135deg, rgba(240, 147, 251, 0.8) 0%, rgba(245, 87, 108, 0.8) 100%);
+        }
+
+        .day-column:nth-child(3) {
+            background: linear-gradient(135deg, rgba(79, 172, 254, 0.8) 0%, rgba(0, 242, 254, 0.8) 100%);
+        }
+
+        .day-column:nth-child(4) {
+            background: linear-gradient(135deg, rgba(67, 233, 123, 0.8) 0%, rgba(56, 249, 215, 0.8) 100%);
+        }
+
+        .day-column:nth-child(5) {
+            background: linear-gradient(135deg, rgba(250, 112, 154, 0.8) 0%, rgba(254, 225, 64, 0.8) 100%);
+        }
+
+        .day-column:hover {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .day-name {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+
+        .day-date {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-bottom: 15px;
+        }
+
+        .schedule-item {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .schedule-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .schedule-time {
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .schedule-event {
+            opacity: 0.9;
+            word-break: break-word;
+        }
+
+        /* 프로젝트 진행률 */
+        .project-item {
+            margin-bottom: 25px;
+        }
+
+        .project-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .project-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .project-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            transition: color 0.3s ease;
+        }
+
+        .project-percent {
+            font-size: 14px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--progress-bg);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .project-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 5px;
+            transition: color 0.3s ease;
+        }
+
+        /* 매출 요약 */
+        .sales-cards {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .sale-card {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.8) 0%, rgba(118, 75, 162, 0.8) 100%);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .sale-card:nth-child(2) {
+            background: linear-gradient(135deg, rgba(240, 147, 251, 0.8) 0%, rgba(245, 87, 108, 0.8) 100%);
+        }
+
+        .sale-card:nth-child(3) {
+            background: linear-gradient(135deg, rgba(79, 172, 254, 0.8) 0%, rgba(0, 242, 254, 0.8) 100%);
+        }
+
+        .sale-card:nth-child(4) {
+            background: linear-gradient(135deg, rgba(67, 233, 123, 0.8) 0%, rgba(56, 249, 215, 0.8) 100%);
+        }
+
+        .sale-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        .sale-label {
+            font-size: 13px;
+            opacity: 0.9;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .sale-value {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        @media (max-width: 1024px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+
+            .card.full-width {
+                grid-column: 1;
+            }
+
+            .schedule-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .sales-cards {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* 내비게이션 메뉴 */
+        .nav-menu {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto;
+            flex-wrap: wrap;
+        }
+
+        .nav-button {
+            padding: 12px 24px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+            border-radius: 10px;
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nav-button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--card-shadow);
+            border-color: #667eea;
+        }
+
+        .nav-button.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: #667eea;
+            color: white;
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+        }
+
+        /* 콘텐츠 섹션 */
+        .content-section {
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        @media (max-width: 600px) {
+            .header {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .card-title {
+                font-size: 18px;
+            }
+
+            .schedule-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .day-column {
+                padding: 12px;
+            }
+
+            .nav-menu {
+                gap: 8px;
+            }
+
+            .nav-button {
+                padding: 10px 16px;
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="theme-toggle" id="themeToggle" title="다크/라이트 모드">🌙</div>
+
+    <div class="header">
+        <h1>📊 업무 대시보드</h1>
+        <a href="index.html" class="back-link">← 메인</a>
+    </div>
+
+    <nav class="nav-menu">
+        <button class="nav-button active" onclick="switchSection('dashboard', this)">📊 대시보드</button>
+        <button class="nav-button" onclick="switchSection('briefing', this)">💬 오늘의 브리핑</button>
+        <button class="nav-button" onclick="switchSection('meeting', this)">📋 회의록</button>
+        <button class="nav-button" onclick="switchSection('chart', this)">📈 매출 현황</button>
+        <button class="nav-button" onclick="switchSection('process', this)">🔄 업무 프로세스</button>
+        <button class="nav-button" onclick="switchSection('report', this)">🔍 사이트 분석</button>
+        <button class="nav-button" onclick="switchSection('settings', this)">⚙️ 설정</button>
+    </nav>
+
+    <!-- 브리핑 섹션 -->
+    <div class="content-section" id="briefing-section">
+        <div class="dashboard">
+            <div class="card full-width">
+                <h2 class="card-title" id="briefingTitle">💬 오늘의 업무 브리핑</h2>
+                <div id="briefingContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 대시보드 섹션 -->
+    <div class="content-section active" id="dashboard-section">
+        <div class="dashboard">
+        <!-- 할 일 목록 -->
+        <div class="card">
+            <h2 class="card-title">✓ 할 일 목록</h2>
+            <ul class="todo-list" id="todoList"></ul>
+        </div>
+
+        <!-- 프로젝트 진행률 -->
+        <div class="card">
+            <h2 class="card-title">📈 프로젝트 진행률</h2>
+            <div id="projectList"></div>
+        </div>
+
+        <!-- 주간 일정 -->
+        <div class="card full-width">
+            <h2 class="card-title">📅 이번 주 일정</h2>
+            <div class="schedule-grid" id="scheduleGrid"></div>
+        </div>
+
+        <!-- 매출 요약 -->
+        <div class="card full-width">
+            <h2 class="card-title">💰 매출 요약</h2>
+            <div class="sales-cards" id="salesCards"></div>
+        </div>
+        </div>
+    </div>
+
+    <!-- 회의록 섹션 -->
+    <div class="content-section" id="meeting-section">
+        <div class="dashboard">
+            <!-- 회의 기본 정보 -->
+            <div class="card full-width">
+                <h2 class="card-title">📌 회의 기본 정보</h2>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div>
+                        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 6px;">회의명</div>
+                        <div style="font-size: 16px; font-weight: 500; color: var(--text-primary);">마케팅팀 주간회의</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 6px;">날짜</div>
+                        <div style="font-size: 16px; font-weight: 500; color: var(--text-primary);">2026년 3월 10일 (월)</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 6px;">참석자</div>
+                        <div style="font-size: 16px; font-weight: 500; color: var(--text-primary);">김대리, 이과장, 박사원, 정팀장</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 6px;">다음 회의</div>
+                        <div style="font-size: 16px; font-weight: 500; color: var(--text-primary);">3월 17일 (월) 10:00</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 논의 내용 요약 -->
+            <div class="card full-width">
+                <h2 class="card-title">📝 논의 내용 요약</h2>
+                <div style="list-style: none; margin: 0; padding: 0;">
+                    <div style="padding: 12px 0; border-bottom: 1px solid var(--border-color); color: var(--text-secondary); line-height: 1.6;">
+                        <strong>SNS 광고 캠페인 A/B 테스트 완료:</strong> B안(영상형)이 A안(이미지형) 대비 클릭률이 2.3배 높게 나타남. 향후 B안 기반으로 영상 광고 3개 추가 제작 진행
+                    </div>
+                    <div style="padding: 12px 0; border-bottom: 1px solid var(--border-color); color: var(--text-secondary); line-height: 1.6;">
+                        <strong>인플루언서 협업 진행:</strong> 제안 3곳 중 푸드스타일리 김OO로부터 회신을 받아 이번 주 내 미팅 일정을 확정하기로 결정
+                    </div>
+                    <div style="padding: 12px 0; border-bottom: 1px solid var(--border-color); color: var(--text-secondary); line-height: 1.6;">
+                        <strong>4월 신제품 런칭 준비:</strong> 사전 티저 콘텐츠 시작 시점을 3월 넷째 주로 확정하여 차질 없는 런칭 준비 진행 예정
+                    </div>
+                    <div style="padding: 12px 0; border-bottom: 1px solid var(--border-color); color: var(--text-secondary); line-height: 1.6;">
+                        <strong>예산 조정 검토:</strong> 추가 영상 제작비 200만원 요청이 필요한 것으로 논의되어 경영진 검토 일정 진행 계획
+                    </div>
+                    <div style="padding: 12px 0; color: var(--text-secondary); line-height: 1.6;">
+                        <strong>3월 프로모션 기획:</strong> 3월 프로모션 기획안 초안 작성을 완료하고 다음 회의에서 전사 검토 예정
+                    </div>
+                </div>
+            </div>
+
+            <!-- 액션 아이템 -->
+            <div class="card full-width">
+                <h2 class="card-title">⚡ 액션 아이템</h2>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead style="background: rgba(102, 126, 234, 0.1);">
+                        <tr>
+                            <th style="width: 20%; padding: 14px; text-align: left; font-weight: 600;">담당자</th>
+                            <th style="width: 50%; padding: 14px; text-align: left; font-weight: 600;">할 일</th>
+                            <th style="width: 30%; padding: 14px; text-align: left; font-weight: 600;">기한</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 12px 14px;">박사원</td>
+                            <td style="padding: 12px 14px;">영상 광고 3개 추가 제작 (B안 기반)</td>
+                            <td style="padding: 12px 14px;">3월 12일 (수)</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 12px 14px;">이과장</td>
+                            <td style="padding: 12px 14px;">인플루언서 미팅 일정 확정</td>
+                            <td style="padding: 12px 14px;">3월 14일 (금)</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 12px 14px;">김대리</td>
+                            <td style="padding: 12px 14px;">3월 프로모션 기획안 초안 작성</td>
+                            <td style="padding: 12px 14px;">3월 12일 (수)</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 12px 14px;">박사원</td>
+                            <td style="padding: 12px 14px;">경쟁사 C사 신규 캠페인 분석</td>
+                            <td style="padding: 12px 14px;">3월 16일 (일)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 매출 현황 섹션 -->
+    <div class="content-section" id="chart-section">
+        <div class="dashboard">
+            <div class="card full-width">
+                <h2 class="card-title">📈 월별 매출 추이</h2>
+                <div style="display: flex; justify-content: center; margin: 20px 0;">
+                    <canvas id="lineChart" width="800" height="300"></canvas>
+                </div>
+                <div id="lineStats"></div>
+            </div>
+
+            <div class="card full-width">
+                <h2 class="card-title">📊 제품별 매출 비교</h2>
+                <div style="display: flex; justify-content: center; margin: 20px 0;">
+                    <canvas id="barChart" width="800" height="350"></canvas>
+                </div>
+                <div id="barStats"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 업무 프로세스 섹션 -->
+    <div class="content-section" id="process-section">
+        <div class="dashboard">
+            <div class="card full-width">
+                <h2 class="card-title">🔄 마케팅 프로세스 플로우</h2>
+                <div style="display: flex; justify-content: center; padding: 30px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 200" width="800" height="200">
+                        <defs>
+                            <style>
+                                .step-box { filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1)); }
+                                .step-text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 16px; font-weight: 600; text-anchor: middle; dominant-baseline: middle; }
+                                .step-number { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 24px; font-weight: 700; text-anchor: middle; dominant-baseline: middle; opacity: 0.6; }
+                                .arrow-line { stroke-width: 2; fill: none; stroke: #999; }
+                                .arrow-head { fill: #999; }
+                            </style>
+                        </defs>
+                        <rect width="800" height="200" fill="white" opacity="0.5"/>
+                        <g class="step-box">
+                            <rect x="30" y="50" width="120" height="100" rx="12" ry="12" fill="#FFB3D9" stroke="#FF85B8" stroke-width="2"/>
+                            <text x="90" y="85" class="step-number">1</text>
+                            <text x="90" y="125" class="step-text" fill="#6B1B3D">기획</text>
+                        </g>
+                        <g>
+                            <line x1="160" y1="100" x2="190" y2="100" class="arrow-line"/>
+                            <polygon points="195,100 185,95 185,105" class="arrow-head"/>
+                        </g>
+                        <g class="step-box">
+                            <rect x="210" y="50" width="120" height="100" rx="12" ry="12" fill="#B3D9FF" stroke="#85C2FF" stroke-width="2"/>
+                            <text x="270" y="85" class="step-number">2</text>
+                            <text x="270" y="125" class="step-text" fill="#1B4D6B">제작</text>
+                        </g>
+                        <g>
+                            <line x1="340" y1="100" x2="370" y2="100" class="arrow-line"/>
+                            <polygon points="375,100 365,95 365,105" class="arrow-head"/>
+                        </g>
+                        <g class="step-box">
+                            <rect x="390" y="50" width="120" height="100" rx="12" ry="12" fill="#B3FFB3" stroke="#85FF85" stroke-width="2"/>
+                            <text x="450" y="85" class="step-number">3</text>
+                            <text x="450" y="125" class="step-text" fill="#1B6B1B">검토</text>
+                        </g>
+                        <g>
+                            <line x1="520" y1="100" x2="550" y2="100" class="arrow-line"/>
+                            <polygon points="555,100 545,95 545,105" class="arrow-head"/>
+                        </g>
+                        <g class="step-box">
+                            <rect x="570" y="50" width="120" height="100" rx="12" ry="12" fill="#FFFFB3" stroke="#FFFF85" stroke-width="2"/>
+                            <text x="630" y="85" class="step-number">4</text>
+                            <text x="630" y="125" class="step-text" fill="#6B6B1B">배포</text>
+                        </g>
+                        <g>
+                            <line x1="700" y1="100" x2="730" y2="100" class="arrow-line"/>
+                            <polygon points="735,100 725,95 725,105" class="arrow-head"/>
+                        </g>
+                        <g class="step-box">
+                            <rect x="670" y="50" width="120" height="100" rx="12" ry="12" fill="#E6B3FF" stroke="#D985FF" stroke-width="2"/>
+                            <text x="730" y="85" class="step-number">5</text>
+                            <text x="730" y="125" class="step-text" fill="#4D1B6B">분석</text>
+                        </g>
+                    </svg>
+                </div>
+                <div style="text-align: center; font-size: 14px; color: var(--text-secondary); padding: 20px; line-height: 1.8;">
+                    <p><strong>1단계 기획:</strong> 마케팅 전략 수립 및 목표 설정</p>
+                    <p><strong>2단계 제작:</strong> 콘텐츠 및 캠페인 자료 제작</p>
+                    <p><strong>3단계 검토:</strong> 품질 검증 및 피드백 반영</p>
+                    <p><strong>4단계 배포:</strong> 채널별 콘텐츠 배포 및 광고 실행</p>
+                    <p><strong>5단계 분석:</strong> 성과 측정 및 최적화</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 설정 섹션 -->
+    <div class="content-section" id="settings-section">
+        <div class="dashboard">
+            <div class="card full-width">
+                <h2 class="card-title">⚙️ 설정</h2>
+                <div style="padding: 20px;">
+                    <!-- 깃허브 토큰 설정 -->
+                    <div style="margin-bottom: 30px; padding: 20px; background: rgba(102, 126, 234, 0.1); border-radius: 10px;">
+                        <div style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 15px;">🔐 GitHub 토큰</div>
+                        <div style="margin-bottom: 10px;">
+                            <label style="display: block; font-size: 13px; color: var(--text-secondary); margin-bottom: 8px;">토큰 입력 (localStorage에 안전하게 저장됨)</label>
+                            <input type="password" id="githubToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+                                   style="width: 100%; padding: 10px 12px; border: 1px solid var(--border-color);
+                                          background: var(--card-bg); color: var(--text-primary); border-radius: 6px;
+                                          font-size: 13px; font-family: monospace;">
+                        </div>
+                        <div style="display: flex; gap: 10px; margin-top: 12px;">
+                            <button onclick="saveGithubToken()" style="padding: 8px 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                                                       color: white; border: none; border-radius: 6px; cursor: pointer;
+                                                                       font-size: 13px; font-weight: 600; transition: all 0.3s;">
+                                💾 저장
+                            </button>
+                            <button onclick="clearGithubToken()" style="padding: 8px 16px; background: rgba(255, 0, 0, 0.1);
+                                                                       color: #d32f2f; border: 1px solid #d32f2f; border-radius: 6px;
+                                                                       cursor: pointer; font-size: 13px; font-weight: 600;">
+                                🗑️ 삭제
+                            </button>
+                        </div>
+                        <div id="tokenStatus" style="margin-top: 10px; font-size: 12px; color: var(--text-secondary);"></div>
+                    </div>
+
+                    <!-- API 설정 -->
+                    <div style="margin-bottom: 30px; padding: 20px; background: rgba(102, 126, 234, 0.1); border-radius: 10px;">
+                        <div style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 15px;">🔑 API 키</div>
+                        <div style="margin-bottom: 10px;">
+                            <label style="display: block; font-size: 13px; color: var(--text-secondary); margin-bottom: 8px;">API 키 (선택사항)</label>
+                            <input type="password" id="apiKey" placeholder="sk_xxxxxxxxxxxxxxxx"
+                                   style="width: 100%; padding: 10px 12px; border: 1px solid var(--border-color);
+                                          background: var(--card-bg); color: var(--text-primary); border-radius: 6px;
+                                          font-size: 13px; font-family: monospace;">
+                        </div>
+                        <div style="display: flex; gap: 10px; margin-top: 12px;">
+                            <button onclick="saveApiKey()" style="padding: 8px 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                                                  color: white; border: none; border-radius: 6px; cursor: pointer;
+                                                                  font-size: 13px; font-weight: 600;">
+                                💾 저장
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 정보 -->
+                    <div style="padding: 15px; background: rgba(76, 175, 80, 0.1); border-radius: 10px; border-left: 4px solid #4caf50;">
+                        <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.8;">
+                            <strong style="color: #4caf50;">ℹ️ 정보</strong><br>
+                            • 모든 토큰과 키는 브라우저의 localStorage에만 저장됩니다<br>
+                            • 서버로 전송되지 않으므로 안전합니다<br>
+                            • 브라우저 개발자 도구에서 확인할 수 없습니다 (password 입력창)<br>
+                            • 필요시 언제든지 삭제할 수 있습니다<br>
+                            <br>
+                            <strong style="color: #4caf50;">📄 .env.local 파일</strong><br>
+                            • 프로젝트 폴더에 .env.local 파일도 생성되었습니다<br>
+                            • 텍스트 에디터로 열어서 토큰을 직접 입력할 수 있습니다<br>
+                            • 경로: 프로젝트 폴더/.env.local
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 사이트 분석 섹션 -->
+    <div class="content-section" id="report-section">
+        <div class="dashboard">
+            <div class="card full-width">
+                <h2 class="card-title">🐶 하이포닉 공식몰 분석 리포트</h2>
+                <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px;">반려동물 전용 저자극 샴푸 & 케어 전문몰 분석</p>
+            </div>
+
+            <div class="card full-width">
+                <h2 class="card-title">📋 서비스 개요</h2>
+                <p style="color: var(--text-secondary); line-height: 1.6; margin-bottom: 15px;">
+                    <strong>하이포닉(HYPONIC)</strong>은 "HEALTHY LIFE SOLUTIONS"라는 슬로건 아래 운영되는 반려동물 전용 샴푸 및 케어 제품 전문 브랜드입니다. 강아지, 고양이를 위한 저자극 샴푸와 케어 제품을 핵심으로 제공하며, 견종별 맞춤형 샴푸와 그루밍 아티스트 라인, 쇼 라인 등 다양한 제품 라인을 운영합니다.
+                </p>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;">
+                    <div style="background: rgba(102, 126, 234, 0.15); padding: 12px; border-radius: 8px; font-size: 13px;">🐶 반려동물 전문</div>
+                    <div style="background: rgba(102, 126, 234, 0.15); padding: 12px; border-radius: 8px; font-size: 13px;">🌿 저자극 포뮬러</div>
+                    <div style="background: rgba(102, 126, 234, 0.15); padding: 12px; border-radius: 8px; font-size: 13px;">🏆 베스트 상품 강조</div>
+                    <div style="background: rgba(102, 126, 234, 0.15); padding: 12px; border-radius: 8px; font-size: 13px;">💼 B2B 채널 운영</div>
+                </div>
+            </div>
+
+            <div class="card full-width">
+                <h2 class="card-title">📂 제품 카테고리 구성</h2>
+                <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 15px;">제품 타입별 7개 카테고리로 체계적인 분류:</p>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                    <div style="padding: 12px; background: rgba(102, 126, 234, 0.1); border-radius: 8px;">
+                        <div style="font-weight: 600;">강아지 전체</div>
+                        <div style="color: var(--text-muted); font-size: 13px;">(31개)</div>
+                    </div>
+                    <div style="padding: 12px; background: rgba(102, 126, 234, 0.1); border-radius: 8px;">
+                        <div style="font-weight: 600;">고양이 전체</div>
+                        <div style="color: var(--text-muted); font-size: 13px;">(6개)</div>
+                    </div>
+                    <div style="padding: 12px; background: rgba(102, 126, 234, 0.1); border-radius: 8px;">
+                        <div style="font-weight: 600;">샴푸</div>
+                        <div style="color: var(--text-muted); font-size: 13px;">(23개)</div>
+                    </div>
+                    <div style="padding: 12px; background: rgba(102, 126, 234, 0.1); border-radius: 8px;">
+                        <div style="font-weight: 600;">케어</div>
+                        <div style="color: var(--text-muted); font-size: 13px;">(13개)</div>
+                    </div>
+                    <div style="padding: 12px; background: rgba(102, 126, 234, 0.1); border-radius: 8px;">
+                        <div style="font-weight: 600;">탈취</div>
+                        <div style="color: var(--text-muted); font-size: 13px;">(5개)</div>
+                    </div>
+                    <div style="padding: 12px; background: rgba(102, 126, 234, 0.1); border-radius: 8px;">
+                        <div style="font-weight: 600;">기타/세트</div>
+                        <div style="color: var(--text-muted); font-size: 13px;">(20개)</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card full-width">
+                <h2 class="card-title">💰 가격대 분석</h2>
+                <div style="padding: 15px; background: rgba(102, 126, 234, 0.1); border-radius: 8px; margin-bottom: 15px;">
+                    <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 10px;">제품 가격대</div>
+                    <div style="font-size: 18px; font-weight: 700; color: #667eea;">36,000 ~ 85,000원</div>
+                </div>
+                <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
+                    프리미엄 반려동물 케어 제품으로 중상 가격대를 형성하고 있으며, 견종별 맞춤형 제품의 특성상 높은 부가가치를 반영합니다.
+                </p>
+            </div>
+
+            <div class="card full-width">
+                <h2 class="card-title">⭐ 성능 평가</h2>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+                    <div>
+                        <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 5px;">브랜드 일관성</div>
+                        <div style="font-size: 18px; font-weight: 700; color: #667eea;">9.0/10</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 5px;">카테고리 체계</div>
+                        <div style="font-size: 18px; font-weight: 700; color: #667eea;">8.8/10</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 5px;">고객 지원 접근성</div>
+                        <div style="font-size: 18px; font-weight: 700; color: #667eea;">8.7/10</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 5px;">네비게이션 UX</div>
+                        <div style="font-size: 18px; font-weight: 700; color: #667eea;">8.5/10</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card full-width">
+                <h2 class="card-title">🏢 회사 정보</h2>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tbody>
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 10px; font-weight: 600; width: 30%;">상호</td>
+                            <td style="padding: 10px;">(주)쿠나이앤티</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 10px; font-weight: 600;">대표</td>
+                            <td style="padding: 10px;">강준배</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 10px; font-weight: 600;">주소</td>
+                            <td style="padding: 10px;">서울특별시 종로구 평창4길 78</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 10px; font-weight: 600;">대표번호</td>
+                            <td style="padding: 10px;">02-395-1020</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; font-weight: 600;">이메일</td>
+                            <td style="padding: 10px;">commerce@hyponic.com</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 테마 토글
+        const themeToggle = document.getElementById('themeToggle');
+        const html = document.documentElement;
+
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            if (savedTheme === 'dark') {
+                html.classList.add('dark-mode');
+                themeToggle.textContent = '☀️';
+            } else {
+                html.classList.remove('dark-mode');
+                themeToggle.textContent = '🌙';
+            }
+        }
+
+        themeToggle.addEventListener('click', () => {
+            const isDarkMode = html.classList.toggle('dark-mode');
+            localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+            themeToggle.textContent = isDarkMode ? '☀️' : '🌙';
+        });
+
+        initTheme();
+
+        // 할 일 목록 데이터
+        const todoData = [
+            { task: "3월 프로모션 기획안 작성", priority: "높음", status: "진행중", person: "김대리" },
+            { task: "인플루언서 미팅 일정 잡기", priority: "높음", status: "대기", person: "이과장" },
+            { task: "영상 광고 3개 추가 제작", priority: "보통", status: "진행중", person: "박사원" },
+            { task: "경쟁사 C사 캠페인 분석", priority: "보통", status: "대기", person: "박사원" },
+            { task: "4월 신제품 티저 콘텐츠 기획", priority: "높음", status: "대기", person: "정팀장" },
+            { task: "SNS 계정 주간 콘텐츠 업로드", priority: "보통", status: "완료", person: "김대리" },
+            { task: "워크숍 후기 작성하기", priority: "높음", status: "대기", person: "김대리" }
+        ];
+
+        // 프로젝트 현황 데이터
+        const projectData = [
+            { name: "봄맞이 프로모션", progress: 65, status: "진행중", budget: 500, spent: 325 },
+            { name: "신제품 런칭 캠페인", progress: 20, status: "준비중", budget: 1200, spent: 240 },
+            { name: "인플루언서 협업", progress: 35, status: "진행중", budget: 300, spent: 105 },
+            { name: "유튜브 채널 리뉴얼", progress: 80, status: "마무리", budget: 150, spent: 120 }
+        ];
+
+        // 주간 일정 데이터
+        const scheduleData = {
+            "월요일 (3/10)": [
+                { time: "10:00", event: "마케팅팀 주간회의" },
+                { time: "14:00", event: "신제품 런칭 킥오프 미팅" }
+            ],
+            "화요일 (3/11)": [
+                { time: "09:00", event: "3월 프로모션 기획안 마감" },
+                { time: "11:00", event: "디자인팀 협업 미팅" },
+                { time: "15:00", event: "파트너사 계약서 검토" },
+                { time: "19:00", event: "클로드 코드 워크숍" }
+            ],
+            "수요일 (3/12)": [
+                { time: "10:00", event: "인플루언서 미팅" },
+                { time: "14:00", event: "고객 설문 결과 공유" },
+                { time: "16:00", event: "콘텐츠 편집 회의" }
+            ],
+            "목요일 (3/13)": [
+                { time: "09:30", event: "영상 광고 촬영" },
+                { time: "13:00", event: "점심 미팅 — 광고 대행사" },
+                { time: "15:00", event: "SNS 콘텐츠 리뷰" }
+            ],
+            "금요일 (3/14)": [
+                { time: "10:00", event: "유튜브 채널 리뉴얼 최종 검토" },
+                { time: "14:00", event: "주간 성과 리뷰" },
+                { time: "16:00", event: "다음 주 콘텐츠 캘린더 확정" }
+            ]
+        };
+
+        // 매출 데이터 요약
+        const salesSummary = {
+            totalSales: 62_295_000,
+            totalUnits: 1_190,
+            transactions: 16,
+            avgSale: 3_893_438
+        };
+
+        // 함수: 할 일 목록 렌더링
+        function renderTodoList() {
+            const todoList = document.getElementById('todoList');
+            todoList.innerHTML = todoData.map((item, index) => `
+                <li class="todo-item">
+                    <input type="checkbox" class="todo-checkbox" id="todo-${index}">
+                    <div class="todo-content">
+                        <div class="todo-text">${item.task}</div>
+                        <div class="todo-meta">
+                            <span class="priority-badge priority-${item.priority === '높음' ? 'high' : item.priority === '보통' ? 'medium' : 'low'}">
+                                ${item.priority}
+                            </span>
+                            <span class="status-badge status-${item.status === '진행중' ? 'progress' : item.status === '대기' ? 'waiting' : 'complete'}">
+                                ${item.status}
+                            </span>
+                            <span style="color: #999; font-size: 12px;">${item.person}</span>
+                        </div>
+                    </div>
+                </li>
+            `).join('');
+        }
+
+        // 함수: 프로젝트 진행률 렌더링
+        function renderProjects() {
+            const projectList = document.getElementById('projectList');
+            projectList.innerHTML = projectData.map(project => `
+                <div class="project-item">
+                    <div class="project-header">
+                        <span class="project-name">${project.name}</span>
+                        <span class="project-percent">${project.progress}%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${project.progress}%"></div>
+                    </div>
+                    <div class="project-info">
+                        <span>상태: ${project.status}</span>
+                        <span>예산: ${project.spent}/${project.budget}만원</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 함수: 주간 일정 렌더링
+        function renderSchedule() {
+            const scheduleGrid = document.getElementById('scheduleGrid');
+            const days = Object.keys(scheduleData);
+            scheduleGrid.innerHTML = days.map((day, index) => `
+                <div class="day-column">
+                    <div class="day-name">${day.split('(')[0].trim()}</div>
+                    <div class="day-date">${day.split('(')[1].replace(')', '')}</div>
+                    ${scheduleData[day].map(schedule => `
+                        <div class="schedule-item">
+                            <div class="schedule-time">${schedule.time}</div>
+                            <div class="schedule-event">${schedule.event}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `).join('');
+        }
+
+        // 함수: 매출 요약 렌더링
+        function renderSales() {
+            const salesCards = document.getElementById('salesCards');
+            salesCards.innerHTML = `
+                <div class="sale-card">
+                    <div class="sale-label">💸 총 매출액</div>
+                    <div class="sale-value">${(salesSummary.totalSales / 1_000_000).toFixed(1)}M</div>
+                </div>
+                <div class="sale-card">
+                    <div class="sale-label">📦 총 판매량</div>
+                    <div class="sale-value">${salesSummary.totalUnits}개</div>
+                </div>
+                <div class="sale-card">
+                    <div class="sale-label">🎯 거래건수</div>
+                    <div class="sale-value">${salesSummary.transactions}건</div>
+                </div>
+                <div class="sale-card">
+                    <div class="sale-label">📊 평균 거래액</div>
+                    <div class="sale-value">${(salesSummary.avgSale / 1_000_000).toFixed(1)}M</div>
+                </div>
+            `;
+        }
+
+        // 오늘의 브리핑 생성
+        function generateBriefing() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const date = String(today.getDate()).padStart(2, '0');
+            const todayStr = `${year}년 ${month}월 ${date}일`;
+            const dayNames = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
+            const dayName = dayNames[today.getDay()];
+
+            // 높은 우선순위 업무
+            const highPriorityTasks = todoData.filter(task => task.priority === '높음' && task.status !== '완료');
+
+            // 진행 중인 프로젝트
+            const ongoingProjects = projectData.filter(p => p.status === '진행중' || p.status === '마무리');
+
+            // 오늘의 일정 (데이터에서 오늘 해당하는 것 찾기)
+            const todaySchedules = [];
+            const days = Object.keys(scheduleData);
+            days.forEach(day => {
+                if (day.includes(dayName)) {
+                    todaySchedules.push(...scheduleData[day]);
+                }
+            });
+
+            let html = `<div style="padding: 20px;">`;
+            html += `<div style="margin-bottom: 20px; padding: 15px; background: rgba(102, 126, 234, 0.15); border-radius: 8px; border-left: 4px solid #667eea;">
+                <div style="font-size: 18px; font-weight: 700; color: #667eea; margin-bottom: 5px;">📅 ${todayStr} ${dayName}</div>
+                <div style="font-size: 13px; color: var(--text-secondary);">오늘의 업무를 정리했습니다.</div>
+            </div>`;
+
+            // 오늘의 일정
+            if (todaySchedules.length > 0) {
+                html += `<div style="margin-bottom: 25px;">
+                    <div style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 12px;">⏰ 오늘의 일정 (${todaySchedules.length}개)</div>
+                    <div style="display: grid; gap: 10px;">`;
+                todaySchedules.forEach(schedule => {
+                    html += `<div style="padding: 10px 12px; background: rgba(102, 126, 234, 0.1); border-radius: 6px; border-left: 3px solid #667eea;">
+                        <div style="font-weight: 600; color: #667eea; margin-bottom: 3px;">${schedule.time}</div>
+                        <div style="font-size: 13px; color: var(--text-secondary);">${schedule.event}</div>
+                    </div>`;
+                });
+                html += `</div></div>`;
+            } else {
+                html += `<div style="margin-bottom: 25px;">
+                    <div style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 12px;">⏰ 오늘의 일정</div>
+                    <div style="padding: 15px; background: rgba(100, 100, 100, 0.1); border-radius: 6px; text-align: center; color: var(--text-muted);">
+                        오늘의 일정이 없습니다.
+                    </div>
+                </div>`;
+            }
+
+            // 높은 우선순위 업무
+            if (highPriorityTasks.length > 0) {
+                html += `<div style="margin-bottom: 25px;">
+                    <div style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 12px;">🚨 우선 처리 업무 (${highPriorityTasks.length}개)</div>
+                    <div style="display: grid; gap: 10px;">`;
+                highPriorityTasks.forEach(task => {
+                    const statusColor = task.status === '진행중' ? '#ff9800' : '#2196f3';
+                    html += `<div style="padding: 12px; background: rgba(255, 152, 0, 0.1); border-radius: 6px; border-left: 3px solid #ff9800;">
+                        <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 5px;">${task.task}</div>
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-secondary);">
+                            <span>${task.person}</span>
+                            <span style="background: ${task.status === '진행중' ? '#ff9800' : '#2196f3'}; color: white; padding: 2px 8px; border-radius: 4px;">${task.status}</span>
+                        </div>
+                    </div>`;
+                });
+                html += `</div></div>`;
+            }
+
+            // 진행 중인 프로젝트
+            if (ongoingProjects.length > 0) {
+                html += `<div style="margin-bottom: 25px;">
+                    <div style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 12px;">📊 진행 중인 프로젝트 (${ongoingProjects.length}개)</div>
+                    <div style="display: grid; gap: 12px;">`;
+                ongoingProjects.forEach(project => {
+                    html += `<div style="padding: 12px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 6px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <div style="font-weight: 600; color: var(--text-primary);">${project.name}</div>
+                            <div style="font-weight: 700; color: #667eea;">${project.progress}%</div>
+                        </div>
+                        <div style="width: 100%; height: 6px; background: var(--progress-bg); border-radius: 3px; overflow: hidden; margin-bottom: 8px;">
+                            <div style="width: ${project.progress}%; height: 100%; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);"></div>
+                        </div>
+                        <div style="font-size: 12px; color: var(--text-secondary);">${project.spent}/${project.budget}만원 사용</div>
+                    </div>`;
+                });
+                html += `</div></div>`;
+            }
+
+            // 요약
+            html += `<div style="padding: 15px; background: rgba(76, 175, 80, 0.1); border-radius: 8px; border-left: 4px solid #4caf50;">
+                <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
+                    <strong style="color: #4caf50;">📌 오늘의 요약</strong><br>
+                    • 높은 우선순위 업무: ${highPriorityTasks.length}개<br>
+                    • 진행 중인 프로젝트: ${ongoingProjects.length}개<br>
+                    • 예정된 일정: ${todaySchedules.length}개
+                </div>
+            </div>`;
+
+            html += `</div>`;
+
+            document.getElementById('briefingContent').innerHTML = html;
+        }
+
+        // 초기 렌더링
+        renderTodoList();
+        renderProjects();
+        renderSchedule();
+        renderSales();
+
+        // 섹션 전환 함수
+        function switchSection(sectionId, button) {
+            // 모든 섹션 숨기기
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+
+            // 모든 버튼 비활성화
+            document.querySelectorAll('.nav-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // 선택한 섹션 활성화
+            document.getElementById(sectionId + '-section').classList.add('active');
+            button.classList.add('active');
+
+            // 차트 섹션이면 차트 그리기
+            if (sectionId === 'chart') {
+                setTimeout(() => {
+                    drawLineChart();
+                    drawBarChart();
+                }, 100);
+            }
+
+            // 브리핑 섹션이면 브리핑 생성
+            if (sectionId === 'briefing') {
+                generateBriefing();
+            }
+
+            // 맨 위로 스크롤
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // 매출 데이터
+        const salesData = [
+            { date: '2026-01-05', product: '무선 이어폰', amount: 4005000 },
+            { date: '2026-01-05', product: '보조배터리', amount: 1120000 },
+            { date: '2026-01-05', product: '텀블러', amount: 1950000 },
+            { date: '2026-01-08', product: '무선 이어폰', amount: 4628000 },
+            { date: '2026-01-08', product: '블루투스 스피커', amount: 2160000 },
+            { date: '2026-01-08', product: '텀블러', amount: 1625000 },
+            { date: '2026-01-12', product: '보조배터리', amount: 1435000 },
+            { date: '2026-01-12', product: '무선 충전기', amount: 1305000 },
+            { date: '2026-01-12', product: '에코백', amount: 1395000 },
+            { date: '2026-01-15', product: '무선 이어폰', amount: 3382000 },
+            { date: '2026-01-15', product: '블루투스 스피커', amount: 2640000 },
+            { date: '2026-01-15', product: '텀블러', amount: 2100000 },
+            { date: '2026-01-19', product: '보조배터리', amount: 1925000 },
+            { date: '2026-01-19', product: '에코백', amount: 1650000 },
+            { date: '2026-01-19', product: '무선 충전기', amount: 1485000 },
+            { date: '2026-01-22', product: '무선 이어폰', amount: 5429000 },
+            { date: '2026-01-22', product: '텀블러', amount: 1800000 },
+            { date: '2026-01-22', product: '블루투스 스피커', amount: 1800000 },
+            { date: '2026-01-26', product: '보조배터리', amount: 1680000 },
+            { date: '2026-01-26', product: '에코백', amount: 1320000 },
+            { date: '2026-01-26', product: '무선 충전기', amount: 1665000 },
+            { date: '2026-02-01', product: '무선 이어폰', amount: 6230000 },
+            { date: '2026-02-01', product: '텀블러', amount: 2375000 },
+            { date: '2026-02-01', product: '보조배터리', amount: 1505000 },
+            { date: '2026-02-05', product: '블루투스 스피커', amount: 3000000 },
+            { date: '2026-02-05', product: '에코백', amount: 1800000 },
+            { date: '2026-02-05', product: '무선 충전기', amount: 1395000 },
+            { date: '2026-02-10', product: '무선 이어폰', amount: 5162000 },
+            { date: '2026-02-10', product: '텀블러', amount: 1675000 },
+            { date: '2026-02-10', product: '보조배터리', amount: 1365000 }
+        ];
+
+        // 유틸리티: 숫자 포맷팅
+        function formatNumber(num) {
+            return Math.round(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+
+        // 월별 매출 데이터 처리
+        function getMonthlyData() {
+            const monthlyData = {};
+            salesData.forEach(item => {
+                const month = item.date.substring(0, 7);
+                monthlyData[month] = (monthlyData[month] || 0) + item.amount;
+            });
+            return monthlyData;
+        }
+
+        // 제품별 매출 데이터 처리
+        function getProductData() {
+            const productData = {};
+            salesData.forEach(item => {
+                productData[item.product] = (productData[item.product] || 0) + item.amount;
+            });
+            return productData;
+        }
+
+        // 선 그래프 그리기
+        function drawLineChart() {
+            const canvas = document.getElementById('lineChart');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const monthlyData = getMonthlyData();
+            const months = Object.keys(monthlyData).sort();
+            const values = months.map(m => monthlyData[m]);
+
+            const padding = 60;
+            const chartWidth = canvas.width - 2 * padding;
+            const chartHeight = canvas.height - 2 * padding;
+            const maxValue = Math.max(...values);
+            const step = chartHeight / maxValue;
+
+            ctx.fillStyle = 'transparent';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= 5; i++) {
+                const y = padding + (chartHeight / 5) * i;
+                ctx.beginPath();
+                ctx.moveTo(padding, y);
+                ctx.lineTo(canvas.width - padding, y);
+                ctx.stroke();
+            }
+
+            ctx.fillStyle = '#999';
+            ctx.textAlign = 'right';
+            ctx.font = '12px sans-serif';
+            for (let i = 0; i <= 5; i++) {
+                const value = Math.round((maxValue / 5) * (5 - i));
+                const y = padding + (chartHeight / 5) * i + 4;
+                ctx.fillText(formatNumber(value), padding - 10, y);
+            }
+
+            ctx.strokeStyle = '#ccc';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(padding, canvas.height - padding);
+            ctx.lineTo(canvas.width - padding, canvas.height - padding);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, canvas.height - padding);
+            ctx.stroke();
+
+            ctx.strokeStyle = '#3b82f6';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            values.forEach((value, idx) => {
+                const x = padding + (chartWidth / (values.length - 1 || 1)) * idx;
+                const y = canvas.height - padding - value * step;
+                if (idx === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+
+            ctx.fillStyle = '#3b82f6';
+            values.forEach((value, idx) => {
+                const x = padding + (chartWidth / (values.length - 1 || 1)) * idx;
+                const y = canvas.height - padding - value * step;
+                ctx.beginPath();
+                ctx.arc(x, y, 5, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            ctx.fillStyle = '#555';
+            ctx.textAlign = 'center';
+            ctx.font = 'bold 12px sans-serif';
+            months.forEach((month, idx) => {
+                const x = padding + (chartWidth / (months.length - 1 || 1)) * idx;
+                const y = canvas.height - padding + 20;
+                ctx.fillText(month, x, y);
+            });
+
+            const totalSales = Object.values(monthlyData).reduce((a, b) => a + b, 0);
+            const avgSales = totalSales / months.length;
+            const maxMonth = months[values.indexOf(Math.max(...values))];
+
+            const statsHtml = `
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-top: 20px;">
+                    <div style="padding: 12px; background: rgba(102, 126, 234, 0.1); border-radius: 8px;">
+                        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 5px;">총 매출액</div>
+                        <div style="font-size: 16px; font-weight: 700; color: #667eea;">${formatNumber(totalSales)}원</div>
+                    </div>
+                    <div style="padding: 12px; background: rgba(102, 126, 234, 0.1); border-radius: 8px;">
+                        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 5px;">평균 매출</div>
+                        <div style="font-size: 16px; font-weight: 700; color: #667eea;">${formatNumber(avgSales)}원</div>
+                    </div>
+                    <div style="padding: 12px; background: rgba(102, 126, 234, 0.1); border-radius: 8px;">
+                        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 5px;">최고 월</div>
+                        <div style="font-size: 16px; font-weight: 700; color: #667eea;">${maxMonth}</div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('lineStats').innerHTML = statsHtml;
+        }
+
+        // 막대 그래프 그리기
+        function drawBarChart() {
+            const canvas = document.getElementById('barChart');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const productData = getProductData();
+            const products = Object.keys(productData).sort((a, b) => productData[b] - productData[a]);
+            const values = products.map(p => productData[p]);
+
+            const padding = 60;
+            const chartWidth = canvas.width - 2 * padding;
+            const chartHeight = canvas.height - 2 * padding;
+            const maxValue = Math.max(...values);
+            const barWidth = chartWidth / products.length;
+            const step = chartHeight / maxValue;
+
+            ctx.fillStyle = 'transparent';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= 5; i++) {
+                const y = padding + (chartHeight / 5) * i;
+                ctx.beginPath();
+                ctx.moveTo(padding, y);
+                ctx.lineTo(canvas.width - padding, y);
+                ctx.stroke();
+            }
+
+            ctx.fillStyle = '#999';
+            ctx.textAlign = 'right';
+            ctx.font = '12px sans-serif';
+            for (let i = 0; i <= 5; i++) {
+                const value = Math.round((maxValue / 5) * (5 - i));
+                const y = padding + (chartHeight / 5) * i + 4;
+                ctx.fillText(formatNumber(value), padding - 10, y);
+            }
+
+            ctx.strokeStyle = '#ccc';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(padding, canvas.height - padding);
+            ctx.lineTo(canvas.width - padding, canvas.height - padding);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, canvas.height - padding);
+            ctx.stroke();
+
+            const colors = ['#10b981', '#059669', '#0891b2', '#0d9488', '#047857', '#065f46'];
+            values.forEach((value, idx) => {
+                const x = padding + barWidth * idx + barWidth * 0.1;
+                const barHeight = value * step;
+                const y = canvas.height - padding - barHeight;
+                const width = barWidth * 0.8;
+
+                ctx.fillStyle = colors[idx % colors.length];
+                ctx.fillRect(x, y, width, barHeight);
+
+                ctx.fillStyle = '#555';
+                ctx.textAlign = 'center';
+                ctx.font = 'bold 11px sans-serif';
+                ctx.fillText(formatNumber(value), x + width / 2, y - 5);
+            });
+
+            ctx.fillStyle = '#555';
+            ctx.textAlign = 'center';
+            ctx.font = '11px sans-serif';
+            products.forEach((product, idx) => {
+                const x = padding + barWidth * idx + barWidth * 0.5;
+                const y = canvas.height - padding + 35;
+                const words = product.split(' ');
+                words.forEach((word, i) => {
+                    ctx.fillText(word, x, y + i * 12);
+                });
+            });
+
+            const totalSales = Object.values(productData).reduce((a, b) => a + b, 0);
+            const topProduct = products[0];
+            const topAmount = values[0];
+
+            const statsHtml = `
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-top: 20px;">
+                    <div style="padding: 12px; background: rgba(102, 126, 234, 0.1); border-radius: 8px;">
+                        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 5px;">전체 제품 매출</div>
+                        <div style="font-size: 16px; font-weight: 700; color: #667eea;">${formatNumber(totalSales)}원</div>
+                    </div>
+                    <div style="padding: 12px; background: rgba(102, 126, 234, 0.1); border-radius: 8px;">
+                        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 5px;">최고 상품</div>
+                        <div style="font-size: 16px; font-weight: 700; color: #667eea;">${topProduct}</div>
+                    </div>
+                    <div style="padding: 12px; background: rgba(102, 126, 234, 0.1); border-radius: 8px;">
+                        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 5px;">최고 상품 매출</div>
+                        <div style="font-size: 16px; font-weight: 700; color: #667eea;">${formatNumber(topAmount)}원</div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('barStats').innerHTML = statsHtml;
+        }
+
+        // 설정 함수들
+        function saveGithubToken() {
+            const token = document.getElementById('githubToken').value.trim();
+            const statusDiv = document.getElementById('tokenStatus');
+
+            if (!token) {
+                statusDiv.innerHTML = '⚠️ 토큰을 입력해주세요';
+                statusDiv.style.color = '#d32f2f';
+                return;
+            }
+
+            try {
+                localStorage.setItem('github_token', token);
+                statusDiv.innerHTML = '✅ GitHub 토큰이 저장되었습니다';
+                statusDiv.style.color = '#4caf50';
+                setTimeout(() => {
+                    statusDiv.innerHTML = '';
+                }, 3000);
+            } catch (error) {
+                statusDiv.innerHTML = '❌ 저장 중 오류가 발생했습니다';
+                statusDiv.style.color = '#d32f2f';
+            }
+        }
+
+        function clearGithubToken() {
+            const statusDiv = document.getElementById('tokenStatus');
+            try {
+                localStorage.removeItem('github_token');
+                document.getElementById('githubToken').value = '';
+                statusDiv.innerHTML = '✅ GitHub 토큰이 삭제되었습니다';
+                statusDiv.style.color = '#4caf50';
+                setTimeout(() => {
+                    statusDiv.innerHTML = '';
+                }, 3000);
+            } catch (error) {
+                statusDiv.innerHTML = '❌ 삭제 중 오류가 발생했습니다';
+                statusDiv.style.color = '#d32f2f';
+            }
+        }
+
+        function saveApiKey() {
+            const apiKey = document.getElementById('apiKey').value.trim();
+            const statusDiv = document.getElementById('tokenStatus');
+
+            if (!apiKey) {
+                statusDiv.innerHTML = '⚠️ API 키를 입력해주세요';
+                statusDiv.style.color = '#d32f2f';
+                return;
+            }
+
+            try {
+                localStorage.setItem('api_key', apiKey);
+                statusDiv.innerHTML = '✅ API 키가 저장되었습니다';
+                statusDiv.style.color = '#4caf50';
+                setTimeout(() => {
+                    statusDiv.innerHTML = '';
+                }, 3000);
+            } catch (error) {
+                statusDiv.innerHTML = '❌ 저장 중 오류가 발생했습니다';
+                statusDiv.style.color = '#d32f2f';
+            }
+        }
+
+        function loadSettings() {
+            try {
+                const savedToken = localStorage.getItem('github_token');
+                if (savedToken) {
+                    document.getElementById('githubToken').value = savedToken;
+                }
+
+                const savedApiKey = localStorage.getItem('api_key');
+                if (savedApiKey) {
+                    document.getElementById('apiKey').value = savedApiKey;
+                }
+            } catch (error) {
+                console.error('설정 로드 중 오류:', error);
+            }
+        }
+
+        // 페이지 로드 시 저장된 설정 불러오기
+        window.addEventListener('DOMContentLoaded', function() {
+            loadSettings();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>하이포닉 공식몰 분석 리포트</title>
+    <style>
+        :root {
+            --bg-primary: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            --bg-secondary: #f5f6fa;
+            --text-primary: #2c3e50;
+            --text-secondary: #555;
+            --text-muted: #999;
+            --card-bg: rgba(255, 255, 255, 0.7);
+            --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            --border-color: rgba(255, 255, 255, 0.3);
+            --accent-color: #667eea;
+        }
+
+        html.dark-mode {
+            --bg-primary: linear-gradient(135deg, #0f0f23 0%, #1a1a3f 100%);
+            --bg-secondary: #0f0f23;
+            --text-primary: #e0e0e0;
+            --text-secondary: #b0b0b0;
+            --text-muted: #707070;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-primary);
+            padding: 30px 20px;
+            transition: background 0.5s ease;
+            min-height: 100vh;
+            color: var(--text-primary);
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 24px;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: var(--card-shadow);
+        }
+
+        .header {
+            max-width: 1000px;
+            margin: 0 auto 50px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            transition: color 0.3s ease;
+        }
+
+        .header p {
+            font-size: 16px;
+            color: var(--text-secondary);
+            transition: color 0.3s ease;
+        }
+
+        .meta-info {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 30px;
+            color: var(--accent-color);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            padding: 8px 12px;
+            border-radius: 6px;
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .back-link:hover {
+            color: #764ba2;
+        }
+
+        /* 내비게이션 메뉴 */
+        .nav-menu {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto;
+            flex-wrap: wrap;
+        }
+
+        .nav-button {
+            padding: 12px 24px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+            border-radius: 10px;
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nav-button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--card-shadow);
+            border-color: #667eea;
+        }
+
+        .nav-button.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: #667eea;
+            color: white;
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: var(--card-shadow);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--text-primary);
+            transition: color 0.3s ease;
+        }
+
+        .card-content {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.8;
+            transition: color 0.3s ease;
+        }
+
+        .card-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .card-list li {
+            padding: 8px 0;
+            padding-left: 20px;
+            position: relative;
+            color: var(--text-secondary);
+            transition: color 0.3s ease;
+        }
+
+        .card-list li:before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: var(--accent-color);
+            font-weight: bold;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .highlights {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .highlight-box {
+            background: rgba(102, 126, 234, 0.1);
+            border-left: 3px solid var(--accent-color);
+            padding: 12px 15px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .rating-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .rating-item:last-child {
+            border-bottom: none;
+        }
+
+        .rating-bar {
+            flex: 1;
+            height: 6px;
+            background: var(--border-color);
+            border-radius: 3px;
+            margin: 0 15px;
+            overflow: hidden;
+        }
+
+        .rating-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .rating-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            min-width: 40px;
+            text-align: right;
+        }
+
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .category-item {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            padding: 14px;
+            border-radius: 8px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .category-item:hover {
+            transform: translateY(-2px);
+            border-color: rgba(102, 126, 234, 0.4);
+        }
+
+        .category-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .category-count {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .product-card {
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        html.dark-mode .product-card {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .product-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .product-badge {
+            display: inline-block;
+            background: #ff6b6b;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .product-name {
+            font-size: 13px;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+            line-height: 1.4;
+        }
+
+        .product-price {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--accent-color);
+        }
+
+        .product-price-original {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-decoration: line-through;
+            margin-right: 6px;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-top: 15px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .section-divider {
+            height: 2px;
+            background: var(--border-color);
+            margin: 40px 0;
+            border-radius: 1px;
+        }
+
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .info-table td {
+            padding: 10px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 13px;
+        }
+
+        .info-table td:first-child {
+            font-weight: 600;
+            width: 35%;
+            color: var(--text-primary);
+        }
+
+        .info-table td:last-child {
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 28px;
+            }
+
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .meta-info {
+                gap: 15px;
+            }
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+
+            .theme-toggle,
+            .back-link,
+            .cta-button {
+                display: none;
+            }
+
+            .card {
+                background: white;
+                border: 1px solid #ddd;
+                box-shadow: none;
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="theme-toggle" id="themeToggle" title="다크/라이트 모드">🌙</div>
+
+    <nav class="nav-menu">
+        <a href="dashboard.html" class="nav-button">📊 대시보드</a>
+        <a href="meeting-result.html" class="nav-button">📋 회의록</a>
+        <a href="chart.html" class="nav-button">📈 매출 현황</a>
+        <a href="diagram.svg" class="nav-button">🔄 업무 프로세스</a>
+        <a href="report.html" class="nav-button active">🔍 사이트 분석</a>
+    </nav>
+
+    <div class="container">
+        <a href="dashboard.html" class="back-link">← 대시보드로</a>
+    </div>
+
+    <div class="header">
+        <h1>🐶 하이포닉 공식몰 분석 리포트</h1>
+        <p>반려동물 전용 저자극 샴푸 & 케어 전문몰 분석</p>
+        <div class="meta-info">
+            <div class="meta-item">🛍️ 대상: hyponicmall.co.kr</div>
+            <div class="meta-item">📅 분석일: 2026년 5월 14일</div>
+            <div class="meta-item">⭐ 카테고리: E-Commerce / 반려동물</div>
+            <div class="meta-item">🏢 운영: (주)쿠나이앤티</div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- 서비스 개요 -->
+        <div class="cards-grid">
+            <div class="card full-width">
+                <div class="card-icon">📋</div>
+                <div class="card-title">서비스 개요</div>
+                <div class="card-content">
+                    <strong>하이포닉(HYPONIC)</strong>은 "HEALTHY LIFE SOLUTIONS"라는 슬로건 아래 운영되는 반려동물 전용 샴푸 및 케어 제품 전문 브랜드입니다.
+                    강아지, 고양이를 위한 저자극 샴푸와 케어 제품을 핵심으로 제공하며, 견종별 맞춤형 샴푸(푸들 전용, 비숑 전용, 리트리버 전용 등)와
+                    그루밍 아티스트 라인, 쇼 라인 등 다양한 제품 라인을 운영합니다. 현재 38개의 강아지 카테고리 상품이 진열되어 있습니다.
+                </div>
+                <div class="highlights">
+                    <div class="highlight-box">🐶 반려동물 전문</div>
+                    <div class="highlight-box">🌿 저자극 포뮬러</div>
+                    <div class="highlight-box">🏆 베스트 상품 강조</div>
+                    <div class="highlight-box">💼 B2B 채널 운영</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <!-- 주요 카테고리 -->
+        <div class="card full-width">
+            <div class="card-icon">📂</div>
+            <div class="card-title">제품 카테고리 구성</div>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 15px;">
+                <strong>제품 타입별</strong> 7개 카테고리로 체계적인 분류:
+            </p>
+            <div class="category-grid">
+                <div class="category-item">
+                    <div class="category-name">강아지 전체</div>
+                    <div class="category-count">(31개)</div>
+                </div>
+                <div class="category-item">
+                    <div class="category-name">고양이 전체</div>
+                    <div class="category-count">(6개)</div>
+                </div>
+                <div class="category-item">
+                    <div class="category-name">샴푸</div>
+                    <div class="category-count">(23개)</div>
+                </div>
+                <div class="category-item">
+                    <div class="category-name">케어</div>
+                    <div class="category-count">(13개)</div>
+                </div>
+                <div class="category-item">
+                    <div class="category-name">탈취</div>
+                    <div class="category-count">(5개)</div>
+                </div>
+                <div class="category-item">
+                    <div class="category-name">기타/세트</div>
+                    <div class="category-count">(20개)</div>
+                </div>
+                <div class="category-item">
+                    <div class="category-name">대용량</div>
+                    <div class="category-count">(22개)</div>
+                </div>
+            </div>
+            <p style="font-size: 14px; color: var(--text-secondary); margin: 20px 0 10px;">
+                <strong>제품 라인별</strong> 4개 시리즈:
+            </p>
+            <div class="category-grid">
+                <div class="category-item">
+                    <div class="category-name">스테디 라인</div>
+                </div>
+                <div class="category-item">
+                    <div class="category-name">견종 라인</div>
+                </div>
+                <div class="category-item">
+                    <div class="category-name">그루밍 아티스트</div>
+                </div>
+                <div class="category-item">
+                    <div class="category-name">쇼 라인</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 실제 상품 예시 -->
+        <div class="card full-width">
+            <div class="card-icon">🛒</div>
+            <div class="card-title">대표 상품 진열 (실제 데이터)</div>
+            <div class="product-grid">
+                <div class="product-card">
+                    <div class="product-name">저자극 푸들 전용 샴푸 500ml</div>
+                    <div class="product-price">38,000원</div>
+                </div>
+                <div class="product-card">
+                    <div class="product-name">저자극 비숑 전용 샴푸 500ml</div>
+                    <div class="product-price">38,000원</div>
+                </div>
+                <div class="product-card">
+                    <div class="product-name">저자극 리트리버 전용 샴푸 1,500ml</div>
+                    <div class="product-price">85,000원</div>
+                </div>
+                <div class="product-card">
+                    <div class="product-name">저자극 비숑 전용 샴푸 500ml*2</div>
+                    <div>
+                        <span class="product-price-original">76,000원</span>
+                        <span class="product-price">72,200원</span>
+                    </div>
+                </div>
+                <div class="product-card">
+                    <span class="product-badge">베스트</span>
+                    <div class="product-name">강아지 샴푸 (모든 강아지용) 500ml</div>
+                    <div class="product-price">36,000원</div>
+                </div>
+                <div class="product-card">
+                    <div class="product-name">강아지 샴푸 (하얀 강아지용) 1,500ml</div>
+                    <div class="product-price">82,000원</div>
+                </div>
+            </div>
+            <p style="font-size: 13px; color: var(--text-muted); margin-top: 15px;">
+                💰 가격대: 6,000원 ~ 85,000원 | 🏷️ 할인율: 약 5% (구성 상품) | 🏆 베스트 상품 배지 시스템
+            </p>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <!-- 사이트 구조 -->
+        <div class="cards-grid">
+            <div class="card">
+                <div class="card-icon">🏗️</div>
+                <div class="card-title">사이트 구조</div>
+                <ul class="card-list">
+                    <li>상단 띠 배너 (회원가입 혜택)</li>
+                    <li>중앙 로고 (HYPONIC)</li>
+                    <li>우측 메뉴 (로그인/가입/장바구니/검색)</li>
+                    <li>메인 GNB (브랜드/공식몰/타입/라인/커뮤니티/B2B)</li>
+                    <li>카테고리 서브 메뉴</li>
+                    <li>상품 정렬 도구</li>
+                    <li>3컬럼 상품 그리드</li>
+                    <li>페이지네이션 (1-3페이지)</li>
+                    <li>풋터 (CS/회사정보/법적정보)</li>
+                </ul>
+            </div>
+
+            <!-- 디자인 분석 -->
+            <div class="card">
+                <div class="card-icon">🎨</div>
+                <div class="card-title">디자인 특징</div>
+                <ul class="card-list">
+                    <li>화이트 미니멀 디자인</li>
+                    <li>중앙 정렬 로고 (브랜드 강조)</li>
+                    <li>심플한 흑백 컬러 팔레트</li>
+                    <li>여백 활용도 높음</li>
+                    <li>대용량 상품 이미지</li>
+                    <li>깔끔한 타이포그래피</li>
+                    <li>일관된 카드형 상품 진열</li>
+                    <li>고급스러운 브랜드 이미지</li>
+                </ul>
+            </div>
+
+            <!-- 주요 기능 -->
+            <div class="card">
+                <div class="card-icon">⚙️</div>
+                <div class="card-title">주요 기능</div>
+                <ul class="card-list">
+                    <li>6가지 정렬 (추천/판매/가격/평점/등록)</li>
+                    <li>표시 개수 선택 (10/20/30/40개)</li>
+                    <li>견종별 카테고리 필터</li>
+                    <li>제품 라인별 분류</li>
+                    <li>장바구니 / 찜리스트</li>
+                    <li>검색 (추천상품, 최근검색어)</li>
+                    <li>최근 본 상품 (TODAY VIEW)</li>
+                    <li>카카오톡 상담 (실시간)</li>
+                    <li>B2B 전용 채널</li>
+                </ul>
+            </div>
+
+            <!-- 주요 강점 -->
+            <div class="card">
+                <div class="card-icon">✨</div>
+                <div class="card-title">잘한 점</div>
+                <ul class="card-list">
+                    <li><strong>전문성</strong>: 견종별 맞춤 제품 (푸들/비숑/리트리버)</li>
+                    <li><strong>브랜드 정체성</strong>: 일관된 미니멀 디자인</li>
+                    <li><strong>카테고리 체계</strong>: 타입별/라인별 이중 분류</li>
+                    <li><strong>접근성</strong>: 카카오톡 상담 즉시 연결</li>
+                    <li><strong>고객 동선</strong>: 직관적 GNB와 사이드 메뉴</li>
+                    <li><strong>다양한 옵션</strong>: 정렬 6종, 표시 개수 4종</li>
+                </ul>
+            </div>
+
+            <!-- 개선 가능 영역 -->
+            <div class="card">
+                <div class="card-icon">💡</div>
+                <div class="card-title">개선 가능 영역</div>
+                <ul class="card-list">
+                    <li><strong>시각적 임팩트</strong>: 흑백 위주 → 브랜드 컬러 활용</li>
+                    <li><strong>리뷰 노출</strong>: 상품 카드에 평점/리뷰수 표시</li>
+                    <li><strong>할인 강조</strong>: 할인율 % 명시적 표시</li>
+                    <li><strong>큐레이션</strong>: 견종별 추천 가이드 부재</li>
+                    <li><strong>장바구니 카운터</strong>: "0"으로 표시되어 활용도 낮음</li>
+                    <li><strong>상품 정보</strong>: 카드에 용량/특징 요약 추가</li>
+                </ul>
+            </div>
+
+            <!-- 기술 스택 -->
+            <div class="card">
+                <div class="card-icon">⚡</div>
+                <div class="card-title">기술 스택 (확인됨)</div>
+                <ul class="card-list">
+                    <li><strong>플랫폼</strong>: 엔에이치엔커머스(NHN Commerce) 호스팅</li>
+                    <li><strong>서버 기술</strong>: PHP 기반 (.php 확장자)</li>
+                    <li><strong>URL 구조</strong>: goods_list.php?cateCd=</li>
+                    <li><strong>반응형</strong>: 모바일/PC 분기 처리</li>
+                    <li><strong>외부 서비스</strong>: 카카오톡 상담, 인스타그램</li>
+                    <li><strong>결제</strong>: NHN Commerce 통합 결제</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <!-- 사용자 동선 분석 -->
+        <div class="card full-width">
+            <div class="card-icon">👣</div>
+            <div class="card-title">사용자 동선 (User Journey)</div>
+            <div class="card-content">
+                <p style="margin-bottom: 12px;">
+                    <strong>① 진입:</strong> 띠 배너로 신규 가입 혜택 안내 → 회원 가입 유도
+                </p>
+                <p style="margin-bottom: 12px;">
+                    <strong>② 탐색:</strong> GNB의 "제품 타입별" 또는 "제품 라인별" 선택 → 카테고리 페이지
+                </p>
+                <p style="margin-bottom: 12px;">
+                    <strong>③ 필터링:</strong> 좌측 서브 카테고리(강아지/고양이/샴푸 등) + 정렬 옵션 활용
+                </p>
+                <p style="margin-bottom: 12px;">
+                    <strong>④ 비교:</strong> 3컬럼 그리드에서 상품 이미지/이름/가격 비교
+                </p>
+                <p style="margin-bottom: 12px;">
+                    <strong>⑤ 상세:</strong> 상품 클릭 → goods_view.php 페이지로 이동
+                </p>
+                <p>
+                    <strong>⑥ 구매:</strong> 장바구니 → 결제 / 또는 찜리스트 저장
+                </p>
+            </div>
+        </div>
+
+        <!-- 성능 평가 -->
+        <div class="card full-width">
+            <div class="card-icon">📊</div>
+            <div class="card-title">성능 평가</div>
+            <div style="margin-top: 20px;">
+                <div class="rating-item">
+                    <span>브랜드 일관성</span>
+                    <div class="rating-bar"><div class="rating-fill" style="width: 90%;"></div></div>
+                    <span class="rating-label">9.0/10</span>
+                </div>
+                <div class="rating-item">
+                    <span>카테고리 체계</span>
+                    <div class="rating-bar"><div class="rating-fill" style="width: 88%;"></div></div>
+                    <span class="rating-label">8.8/10</span>
+                </div>
+                <div class="rating-item">
+                    <span>상품 진열</span>
+                    <div class="rating-bar"><div class="rating-fill" style="width: 82%;"></div></div>
+                    <span class="rating-label">8.2/10</span>
+                </div>
+                <div class="rating-item">
+                    <span>네비게이션 UX</span>
+                    <div class="rating-bar"><div class="rating-fill" style="width: 85%;"></div></div>
+                    <span class="rating-label">8.5/10</span>
+                </div>
+                <div class="rating-item">
+                    <span>구매 전환 디자인</span>
+                    <div class="rating-bar"><div class="rating-fill" style="width: 75%;"></div></div>
+                    <span class="rating-label">7.5/10</span>
+                </div>
+                <div class="rating-item">
+                    <span>고객 지원 접근성</span>
+                    <div class="rating-bar"><div class="rating-fill" style="width: 87%;"></div></div>
+                    <span class="rating-label">8.7/10</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 회사 정보 -->
+        <div class="card full-width">
+            <div class="card-icon">🏢</div>
+            <div class="card-title">회사 정보 (사이트 풋터)</div>
+            <table class="info-table">
+                <tr><td>상호명</td><td>(주)쿠나이앤티</td></tr>
+                <tr><td>대표자</td><td>강준배</td></tr>
+                <tr><td>주소</td><td>서울특별시 종로구 평창4길 78</td></tr>
+                <tr><td>사업자등록번호</td><td>106-86-84199</td></tr>
+                <tr><td>통신판매업신고</td><td>2018-서울종로-1431</td></tr>
+                <tr><td>대표번호</td><td>02-395-1020 (평일 10:00~17:00, 휴식 12:00~13:00)</td></tr>
+                <tr><td>팩스</td><td>02-6499-0891</td></tr>
+                <tr><td>이메일</td><td>commerce@hyponic.com</td></tr>
+                <tr><td>호스팅</td><td>엔에이치엔커머스(주)</td></tr>
+                <tr><td>SNS</td><td>인스타그램 @hyponic_official</td></tr>
+            </table>
+        </div>
+
+        <!-- 전략적 권장사항 -->
+        <div class="card full-width">
+            <div class="card-icon">🎯</div>
+            <div class="card-title">전략적 권장사항</div>
+            <div class="card-content">
+                <p style="margin-bottom: 15px;">
+                    <strong>즉시 개선 (0-1개월):</strong>
+                    상품 카드에 리뷰 별점/개수 노출, 할인율 % 명시, 베스트 상품 외 신상/품절임박 배지 추가
+                </p>
+                <p style="margin-bottom: 15px;">
+                    <strong>단기 개선 (1-3개월):</strong>
+                    견종별 맞춤 추천 시스템, 첫 구매자 가이드 콘텐츠, 자주 묶이는 상품 추천(케어+샴푸), 정기 배송 옵션
+                </p>
+                <p style="margin-bottom: 15px;">
+                    <strong>중기 개선 (3-6개월):</strong>
+                    반려동물 프로필 등록 → AI 맞춤 추천, 그루밍 콘텐츠/블로그 확장, 회원 등급제와 적립 시스템 강화
+                </p>
+                <p style="margin-bottom: 15px;">
+                    <strong>브랜드 강화:</strong>
+                    "HEALTHY LIFE SOLUTIONS" 슬로건을 시각적으로 강조, 그루밍 전문가 협업 콘텐츠, 펫 인플루언서 마케팅
+                </p>
+                <p>
+                    <strong>핵심 KPI:</strong> 견종별 카테고리 진입률, 베스트 상품 비중, 평균 객단가(현재 36,000원~85,000원대), 재구매율
+                </p>
+            </div>
+        </div>
+
+        <!-- 경쟁력 분석 -->
+        <div class="card full-width">
+            <div class="card-icon">🏆</div>
+            <div class="card-title">경쟁력 분석</div>
+            <div class="card-content">
+                <strong>✅ 차별화 포인트:</strong><br>
+                • <strong>견종별 전용 라인</strong>: 푸들/비숑/리트리버 등 견종 특화 샴푸 (경쟁사에서 찾기 어려운 USP)<br>
+                • <strong>저자극 포뮬러</strong>: 반려동물 피부 민감성을 고려한 제품 차별화<br>
+                • <strong>프로 라인업</strong>: 그루밍 아티스트 라인, 쇼 라인 등 전문가 시장 공략<br>
+                • <strong>B2B 채널</strong>: 그루밍샵/펫숍 대상 별도 채널 운영<br>
+                <br>
+                <strong>⚠️ 개선 필요 영역:</strong><br>
+                • 시각적 임팩트 부족 (흑백 위주, 브랜드 컬러 부재)<br>
+                • 사용자 리뷰가 카테고리 페이지에 노출되지 않음<br>
+                • 모바일 앱 미보유 (재구매율 한계)<br>
+                • 콘텐츠 마케팅(반려동물 그루밍 가이드) 약함<br>
+                <br>
+                <strong>💪 시장 포지셔닝:</strong> 프리미엄 반려동물 전용 케어 브랜드. 가격대(36,000~85,000원)에서 알 수 있듯 중상위 시장 타겟. 견종별 전문성으로 충성 고객 확보 가능성 높음.
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 40px; padding: 30px; background: var(--card-bg); border: 1px solid var(--border-color); backdrop-filter: blur(10px); border-radius: 15px;">
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">
+                본 분석은 2026년 5월 14일 크롬 브라우저로 실시간 사이트를 확인하여 작성되었습니다.<br>
+                분석 대상: <a href="https://www.hyponicmall.co.kr/goods/goods_list.php?cateCd=010001" style="color: var(--accent-color);">hyponicmall.co.kr (강아지 카테고리)</a>
+            </p>
+            <button class="cta-button" onclick="window.print()">🖨️ 리포트 인쇄</button>
+            <button class="cta-button" style="margin-left: 10px; background: rgba(102, 126, 234, 0.2); color: var(--text-primary);" onclick="downloadReport()">⬇️ 다운로드</button>
+        </div>
+    </div>
+
+    <script>
+        const themeToggle = document.getElementById('themeToggle');
+        const html = document.documentElement;
+
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            if (savedTheme === 'dark') {
+                html.classList.add('dark-mode');
+                themeToggle.textContent = '☀️';
+            } else {
+                html.classList.remove('dark-mode');
+                themeToggle.textContent = '🌙';
+            }
+        }
+
+        themeToggle.addEventListener('click', () => {
+            const isDarkMode = html.classList.toggle('dark-mode');
+            localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+            themeToggle.textContent = isDarkMode ? '☀️' : '🌙';
+        });
+
+        initTheme();
+
+        function downloadReport() {
+            const content = `
+하이포닉 공식몰 분석 리포트
+=====================================
+분석일: 2026년 5월 14일
+대상: hyponicmall.co.kr (강아지 카테고리)
+운영: (주)쿠나이앤티 (대표: 강준배)
+
+【 서비스 개요 】
+하이포닉(HYPONIC)은 "HEALTHY LIFE SOLUTIONS" 슬로건의 반려동물 전용 샴푸 및 케어 제품 전문 브랜드.
+강아지/고양이 저자극 샴푸 위주, 견종별 맞춤 제품(푸들/비숑/리트리버 전용) 강점.
+
+【 카테고리 구조 】
+제품 타입별 (7개):
+- 강아지 전체 (31), 고양이 전체 (6), 샴푸 (23), 케어 (13)
+- 탈취 (5), 기타/세트 (20), 대용량 (22)
+
+제품 라인별 (4개):
+- 스테디 라인, 견종 라인, 그루밍 아티스트 라인, 쇼 라인
+
+【 대표 상품 (실측) 】
+- 저자극 푸들 전용 샴푸 500ml: 38,000원
+- 저자극 비숑 전용 샴푸 500ml: 38,000원
+- 저자극 리트리버 전용 샴푸 1,500ml: 85,000원
+- 저자극 비숑 전용 샴푸 2개 세트: 76,000원 → 72,200원 (할인)
+- [베스트] 강아지 샴푸 모든 강아지용 500ml: 36,000원
+- 가격대: 6,000원 ~ 85,000원
+
+【 주요 기능 】
+1. 6가지 정렬 옵션 (추천/판매/가격×2/평점/등록)
+2. 표시 개수 선택 (10/20/30/40개)
+3. 다층 카테고리 (타입+라인)
+4. 장바구니 / 찜리스트
+5. 검색 (추천상품, 최근검색어)
+6. TODAY VIEW (최근 본 상품)
+7. 카카오톡 상담 (실시간)
+8. B2B 전용 채널
+
+【 강점 】
+✓ 견종별 전용 제품 라인업 (차별화 USP)
+✓ 일관된 미니멀 브랜드 디자인
+✓ 체계적 이중 카테고리 (타입+라인)
+✓ 즉시 가능한 카카오톡 상담
+✓ 그루밍 전문가 라인 (프로 시장)
+✓ B2B 채널 운영
+
+【 개선 가능 영역 】
+- 시각적 임팩트 (흑백 위주 → 컬러 활용)
+- 카테고리 페이지에 리뷰/평점 노출
+- 할인율 % 명시 표시
+- 견종별 추천 가이드 콘텐츠
+- 장바구니 활용도 (현재 카운터 "0")
+- 상품 카드 정보량 (용량/특징 요약)
+
+【 성능 평가 】
+- 브랜드 일관성: 9.0/10
+- 카테고리 체계: 8.8/10
+- 고객 지원 접근성: 8.7/10
+- 네비게이션 UX: 8.5/10
+- 상품 진열: 8.2/10
+- 구매 전환 디자인: 7.5/10
+
+【 회사 정보 】
+- 상호: (주)쿠나이앤티
+- 대표: 강준배
+- 주소: 서울특별시 종로구 평창4길 78
+- 사업자번호: 106-86-84199
+- 통신판매업: 2018-서울종로-1431
+- 대표번호: 02-395-1020
+- 이메일: commerce@hyponic.com
+- 호스팅: NHN Commerce
+- SNS: @hyponic_official
+
+【 전략적 권장사항 】
+즉시: 리뷰 별점 노출, 할인율 명시, 다양한 배지 추가
+단기: 견종별 추천 시스템, 묶음 추천, 정기 배송
+중기: 반려동물 프로필 + AI 추천, 콘텐츠 마케팅, 회원 등급제
+브랜드: 슬로건 시각화, 전문가 협업, 인플루언서 마케팅
+
+【 핵심 KPI 】
+- 견종별 카테고리 진입률
+- 베스트 상품 비중
+- 평균 객단가 (36,000~85,000원대)
+- 재구매율
+`;
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = '하이포닉공식몰_분석리포트_20260514.txt';
+            link.click();
+        }
+
+        // 현재 페이지에 해당하는 네비게이션 버튼 활성화
+        function highlightCurrentPage() {
+            const currentPage = window.location.pathname.split('/').pop() || 'report.html';
+            const navButtons = document.querySelectorAll('.nav-button');
+
+            navButtons.forEach(button => {
+                button.classList.remove('active');
+                const href = button.getAttribute('href');
+                if (href === currentPage) {
+                    button.classList.add('active');
+                }
+            });
+        }
+
+        highlightCurrentPage();
+    </script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+# 환경 변수 파일 (토큰, 민감한 정보 포함)
+.env
+.env.local
+.env.*.local
+
+# IDE 설정
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS 파일
+.DS_Store
+Thumbs.db
+
+# 로그 파일
+*.log
+npm-debug.log*
+
+# 노드 모듈 (향후 사용시)
+node_modules/
+dist/
+build/
+
+# Claude 설정 (로컬 전용)
+.claude/
